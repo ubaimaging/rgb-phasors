@@ -36,7 +36,7 @@ if cal_areas == True:
         while i < len(name) and name[i][0:3] == str(n[k]):
             rgb = plt.imread(path + name[i])
             bgr = tools.rgb2bgr(rgb)
-            dc, g, s = tools.phasor(bgr)
+            _, g, s = tools.phasor(bgr)
             g = tools.median_filter(g, 3)
             s = tools.median_filter(s, 3)
 

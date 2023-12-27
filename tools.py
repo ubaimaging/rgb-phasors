@@ -7,7 +7,7 @@ from matplotlib.widgets import Cursor
 
 
 
-def phasor(image_stack, harmonic=1):
+def phasor(image_stack, harmonic=1, axis=0):
     """
         This function computes the average intensity image, the G and S coordinates of the phasor.
     As well as the modulation and phase.
