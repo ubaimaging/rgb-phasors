@@ -234,8 +234,8 @@ def rgb_coloring(dc, g, s, ic, center, Ro):
     norm = plt.Normalize(img_new.min(), img_new.max())
     rgba = cmap(norm(img_new))
     # Set the colors
-    rgba[indices1[0], indices1[1], :3] = 1, 0, 0  # blue
+    rgba[indices1[0], indices1[1], :3] = 0, 0, 1  # blue
     rgba[indices2[0], indices2[1], :3] = 0, 1, 0  # green
-    rgba[indices3[0], indices3[1], :3] = 0, 0, 1  # red
+    rgba[indices3[0], indices3[1], :3] = 1, 0, 0  # red
 
     return rgba
