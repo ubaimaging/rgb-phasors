@@ -114,8 +114,9 @@ if parte3_1:
     data = np.concatenate([data1[0:50], data2[0:50], data1[50:100], data2[50:100]])
 
     d = data.reshape([2, 100])
-    dmean = np.mean(1 - d, axis=1)
-    dstd = np.std(1 - d, axis=1)
+    d = 1 - d
+    dmean = np.mean(d, axis=1)
+    dstd = np.std(d, axis=1)
 
     print(dmean)
     print(dstd)
