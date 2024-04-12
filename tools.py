@@ -25,16 +25,11 @@ def phasor(image_stack, harmonic=1, axis=0):
     data = np.fft.fft(image_stack, axis=0, norm='ortho')
 
     dc = data[0].real
-    dc = np.where(
-        dc != 0, dc, np.NaN
-    )  # Set NaN where there is a 0 division
-
     g = data[harmonic].real
     g /= dc
     s = data[harmonic].imag
     s /= -dc
-    avg = np.mean(image_stack, axis=0)
-    return avg, g, s
+    return dc, g, s
 
 
 def phasor_circle(ax):
@@ -140,11 +135,34 @@ def median_filter(im, n):
         imf = median(imf)
     return imf
 
+
+def phasor_clustering(dc, x, nclusters = 2):
+    # Clustering segmentation
+    from sklearn.cluster import KMeans
+
+    kmeans = KMeans(n_clusters=nclusters, random_state=0, n_init="auto").fit(x)
+    pred_y = kmeans.fit_predict(x)
+    cm = kmeans.cluster_centers_
+    imp = pred_y.reshape(dc.shape)
+    return pred_y, imp, cm
+
+
+def cluster_phasor_plot(X, pred_y):
+    p0 = np.where(pred_y == 0)
+    p1 = np.where(pred_y == 1)
+    p2 = np.where(pred_y == 2)
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.scatter(X[p0[0], 0], X[p0[0], 1], c='b')
+    ax.scatter(X[p1[0], 0], X[p1[0], 1], c='r')
+    ax.scatter(X[p2[0], 0], X[p2[0], 1], c='g')
+    phasor_circle(ax)
+
 # -------------------------
 #   INTERACTIVE FUNCTIONS 
 # -------------------------
 
-def interactive(dc, g, s, Ro, nbit):
+def interactive(dc, g, s, Ro, nbit, filter=3):
     """
         This function plot the avg image, its histogram, the phasors and the rbg pseudocolor image.
     To get the phasor the user must pick an intensity cut umbral in the histogram in order to plot the phasor.
@@ -156,8 +174,12 @@ def interactive(dc, g, s, Ro, nbit):
     :param Ro: radius of the circle to select pixels in the phasor
     :return: fig: figure contains the avg, histogram, phasor and pseudocolor image.
     """
+
+    median_filter(g, filter)
+    median_filter(s, filter)
+
     nbit = 2**nbit
-    fig, ax = plt.subplots(2, 2, figsize=(20, 12))
+    fig, ax = plt.subplots(2, 2, figsize=(15, 8))
 
     ax[0, 0].imshow(dc, cmap='gray')
     ax[0, 0].axis('off')
@@ -177,6 +199,12 @@ def interactive(dc, g, s, Ro, nbit):
     ax[1, 0].set_title('Phasor')
 
     center = plt.ginput(3, timeout=0)  # store the center of each circle
+
+    ccolor = ['blue', 'green', 'red']
+    for i in range(3):
+        circle = plt.Circle((center[i][0], center[i][1]), Ro, color=ccolor[i], fill=False)
+        ax[1, 0].add_patch(circle)
+
     rgba = rgb_coloring(dc, g, s, ic, center, Ro)
     ax[1, 1].imshow(rgba)
     ax[1, 1].set_title('Pseudocolor image')
@@ -239,3 +267,55 @@ def rgb_coloring(dc, g, s, ic, center, Ro):
     rgba[indices3[0], indices3[1], :3] = 1, 0, 0  # red
 
     return rgba
+
+
+def interactive2(dc, g, s, Ro, nbit, filter=3):
+    """
+        This function plot the avg image, its histogram, the phasors and the rbg pseudocolor image.
+    To get the phasor the user must pick an intensity cut umbral in the histogram in order to plot the phasor.
+    To get the rgb pseudocolor image you must pick three circle in the phasor plot.
+    :param nbit: bits of the image
+    :param dc: average intensity image. ndarray
+    :param g: image. ndarray. Contains the real coordinate G of the phasor
+    :param s: image. ndarray. Contains the imaginary coordinate S of the phasor
+    :param Ro: radius of the circle to select pixels in the phasor
+    :return: fig: figure contains the avg, histogram, phasor and pseudocolor image.
+    """
+
+    median_filter(g, filter)
+    median_filter(s, filter)
+
+    nbit = 2**nbit
+
+    fig, ax = plt.subplots(figsize=(6, 6))
+    ax.hist(dc.flatten(), bins=nbit, range=(0, nbit))
+    ax.set_yscale("log")
+    cursor = Cursor(ax, horizOn=False, vertOn=True, color='darkgoldenrod')
+
+    ic = plt.ginput(1, timeout=0)
+    ic = int(ic[0][0])
+    x, y = histogram_thresholding(dc, g, s, ic)  # x y contain g and s coordinate to pass to hist2d function
+
+    fig, ax2 = plt.subplots(figsize=(6, 6))
+    phasor_circle(ax2)
+    ax2.hist2d(x, y, bins=256, cmap="RdYlGn_r", norm=colors.LogNorm(), range=[[-1, 1], [-1, 1]])
+    ax2.set_title('Phasor')
+
+    center = plt.ginput(3, timeout=0)  # store the center of each circle
+
+    ccolor = ['blue', 'green', 'red']
+    for i in range(3):
+        circle = plt.Circle((center[i][0], center[i][1]), Ro, color=ccolor[i], fill=False)
+        ax2.add_patch(circle)
+
+    plt.figure(3)
+    plt.imshow(dc, cmap="gray")
+
+    plt.figure(4)
+    rgba = rgb_coloring(dc, g, s, ic, center, Ro)
+    plt.imshow(rgba)
+    plt.title('Pseudocolor image')
+    plt.axis('off')
+
+    plt.show()
+    return fig

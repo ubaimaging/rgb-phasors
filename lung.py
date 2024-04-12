@@ -106,7 +106,7 @@ if part3:
         aux[i] = np.sum(data[i]) / area
     np.save("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/areas2.npy", aux)
 
-parte3_1 = False
+parte3_1 = True
 if parte3_1:
     data1 = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/areas.npy")
     data2 = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/areas2.npy")
@@ -126,10 +126,16 @@ if parte3_1:
 
 plotty2 = False
 if plotty2:
-    data = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/lung_mask.npy")
+    # data = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/lung_mask.npy")
+    data = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/lung_mask2.npy")
 
-    # imagen para el paper numero 15 nombre 52-21B6ND05.tif
-    im = plt.imread("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/B6ND/52-21B6ND05.tif")
+
+    # imagen para el paper numero 15 nombre 52-21B6ND05.tif que es data[ind] con ind=14 
+    # y para instilado es ind = 56
+    ind = 50
+    # im = plt.imread("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/B6ND/52-21B6ND05.tif")
+    im = plt.imread("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/B6ND_inst2/063-21B6ND_INS06.tif") 
+
     bgr = tools.rgb2bgr(im)
     _, g, s = tools.phasor(bgr)
     g = tools.median_filter(g, 1)
@@ -164,7 +170,7 @@ if plotty2:
     
     for i in range(data.shape[1]):
         for j in range(data.shape[2]):
-            if data[14][i][j] == 1:
+            if data[ind][i][j] == 1:
                 imcolor[i, j, :] = 1, 0, 0
             else:
                 imcolor[i, j, :] = 0, 0, 1
