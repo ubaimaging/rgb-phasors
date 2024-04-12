@@ -114,8 +114,11 @@ if parte3_1:
     data = np.concatenate([data1[0:50], data2[0:50], data1[50:100], data2[50:100]])
 
     d = data.reshape([2, 100])
-    dmean = np.mean(d, axis=1)
-    dstd = np.std(d, axis=1)
+    dmean = np.mean(1 - d, axis=1)
+    dstd = np.std(1 - d, axis=1)
+
+    print(dmean)
+    print(dstd)
 
     fig, ax = plt.subplots()
     ax.violinplot(d[0], [0], showmeans=True)
@@ -128,7 +131,6 @@ plotty2 = False
 if plotty2:
     # data = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/lung_mask.npy")
     data = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/lung_mask2.npy")
-
 
     # imagen para el paper numero 15 nombre 52-21B6ND05.tif que es data[ind] con ind=14 
     # y para instilado es ind = 56
