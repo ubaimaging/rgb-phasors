@@ -149,7 +149,6 @@ if plotty2:
     p1 = np.where(pred_y == 1)
     # p2 = np.where(pred_y == 2)
 
-
     plt.figure(1)
     plt.imshow(im)
     # plt.savefig("/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig2/rgb.png", dpi=300)
