@@ -106,7 +106,7 @@ if part3:
         aux[i] = np.sum(data[i]) / area
     np.save("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/areas2.npy", aux)
 
-parte3_1 = True
+parte3_1 = False
 if parte3_1:
     data1 = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/areas.npy")
     data2 = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/areas2.npy")
@@ -128,14 +128,14 @@ if parte3_1:
     # plt.savefig("/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig2/violins.png", dpi=300)
     plt.show()
 
-plotty2 = False
+plotty2 = True
 if plotty2:
     # data = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/lung_mask.npy")
     data = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/lung_mask2.npy")
 
     # imagen para el paper numero 15 nombre 52-21B6ND05.tif que es data[ind] con ind=14 
     # y para instilado es ind = 56
-    ind = 50
+    ind = 56
     # im = plt.imread("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/B6ND/52-21B6ND05.tif")
     im = plt.imread("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/B6ND_inst2/063-21B6ND_INS06.tif") 
 
@@ -183,3 +183,4 @@ if plotty2:
     plt.imshow(imcolor)
     # plt.savefig("/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig2/mask.png", dpi=300)
     plt.show()
+    
