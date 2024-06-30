@@ -62,7 +62,7 @@ if part1:
 #    Part 2
 # ------------
 
-# Load both files and concatename them to apply the clustering 
+# Load both files and concatenate them to apply the clustering 
 part2 = False
 if part2:
     data1 = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/cluster_coord_B6ND2.npy")

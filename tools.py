@@ -107,7 +107,7 @@ def phasor_figure(x, y, phases=None, circle_plot=False, phases_lines=False):
         phasor_circle(ax)
     if phases_lines:
         circle_lines(ax, phases)
-    return fig
+    return ax
 
 
 def rgb2bgr(im):
@@ -252,7 +252,7 @@ def rgb_coloring(dc, g, s, ic, center, Ro):
     M3 = ((g - center[2][0]) ** 2 + (s - center[2][1]) ** 2 - Ro ** 2) * aux1
 
     # img_new = np.copy(dc)
-    img_new = np.zeros(dc.shape)  # todo si uso esto escrive sobre una img de fondo negro
+    img_new = np.zeros(dc.shape)  # todo si uso esto escribe sobre una img de fondo negro
 
     indices1 = np.where(M1 < 0)
     indices2 = np.where(M2 < 0)
