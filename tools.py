@@ -147,16 +147,35 @@ def phasor_clustering(dc, x, nclusters = 2):
     return pred_y, imp, cm
 
 
-def cluster_phasor_plot(X, pred_y):
-    p0 = np.where(pred_y == 0)
-    p1 = np.where(pred_y == 1)
-    p2 = np.where(pred_y == 2)
+def cluster_phasor_plot(X, pred_y, nclusters=3):
+    from phasorpy.plot import PhasorPlot
+    from matplotlib import pyplot
+    fig, ax = plt.subplots(figsize=(6, 6))
+    ax = pyplot.subplot(1, 1, 1)
+    plot = PhasorPlot(ax=ax, allquadrants=True, title='Phasor plot')
 
-    fig, ax = plt.subplots(figsize=(8, 8))
-    ax.scatter(X[p0[0], 0], X[p0[0], 1], c='b')
-    ax.scatter(X[p1[0], 0], X[p1[0], 1], c='r')
-    ax.scatter(X[p2[0], 0], X[p2[0], 1], c='g')
-    phasor_circle(ax)
+    if nclusters == 3:
+        p0 = np.where(pred_y == 0)
+        p1 = np.where(pred_y == 1)
+        p2 = np.where(pred_y == 2)
+        ax.scatter(X[p0[0], 0], X[p0[0], 1], c='b')
+        ax.scatter(X[p1[0], 0], X[p1[0], 1], c='g')
+        ax.scatter(X[p2[0], 0], X[p2[0], 1], c='r')
+        # phasor_circle(ax)
+    if nclusters == 6:
+        p0 = np.where(pred_y == 0)
+        p1 = np.where(pred_y == 1)
+        p2 = np.where(pred_y == 2)
+        p3 = np.where(pred_y == 3)
+        p4 = np.where(pred_y == 4)
+        p5 = np.where(pred_y == 5)
+        ax.scatter(X[p0[0], 0], X[p0[0], 1], c='cyan')
+        ax.scatter(X[p1[0], 0], X[p1[0], 1], c='g')
+        ax.scatter(X[p2[0], 0], X[p2[0], 1], c='yellow')
+        ax.scatter(X[p3[0], 0], X[p3[0], 1], c='magenta')
+        ax.scatter(X[p4[0], 0], X[p4[0], 1], c='b')
+        ax.scatter(X[p5[0], 0], X[p5[0], 1], c='r')
+        # phasor_circle(ax)
 
 # -------------------------
 #   INTERACTIVE FUNCTIONS 
@@ -319,3 +338,16 @@ def interactive2(dc, g, s, Ro, nbit, filter=3):
 
     plt.show()
     return fig
+
+
+def mask_with_predict_clusters(X, Y, g, s, im):
+    N = X.shape[0]
+    M, K = g.shape
+    
+    for n in range(N):
+        for i in range(M):
+            for j in range(K):
+                if X[n][0] == g[i][j] and X[n][1] == s[i][j]:
+                    im[i][j] = Y[n]
+    
+    return im 
