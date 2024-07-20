@@ -11,8 +11,9 @@ from phasorpy.cursors import (
 from phasorpy.plot import PhasorPlot
 from phasorpy.color import CATEGORICAL
 from phasorpy.phasor import phasor_from_signal
+import math
 
-from tools import phasor, cluster_phasor_plot
+from tools import phasor, cluster_phasor_plot, rgb2bgr
 
 im = plt.imread("/Users/schutyb/Documents/Projects/rgb-phasors/data/simulations/rgbw.png")
 
@@ -73,7 +74,6 @@ if cursors:
     fig, ax = plt.subplots()
     ax.set_title('Segmented image with circular cursors')
     ax.imshow(segmented_image)
-
     # plt.show()
 
 clusters = True
@@ -84,12 +84,26 @@ if clusters:
     coord_s = s.flatten()[~np.isnan(s.flatten())]
     x = np.asarray([coord_g, coord_s]).transpose()
 
-    kmeans = KMeans(n_clusters=3, random_state=0, n_init="auto").fit(x)
-    pred_y = kmeans.fit_predict(x)
-    cm = kmeans.cluster_centers_
-    cluster_phasor_plot(x, pred_y, nclusters=3)
+    km = True 
+    if km:
+        num_clusters = 3
+        kmeans = KMeans(n_clusters=num_clusters, random_state=0, n_init="auto").fit(x)
+        pred_y = kmeans.fit_predict(x)
+        cm = kmeans.cluster_centers_
+        cluster_phasor_plot(x, pred_y, nclusters=num_clusters)
+        # plt.show()
+    gmm = False
+    if gmm:
+        from sklearn.mixture import GaussianMixture
+        gmm = GaussianMixture(n_components=3, random_state=0)
+        gmm.fit(x)
+        labels = gmm.predict(x)
+        means = gmm.means_
+        covariances = gmm.covariances_
 
-    im = np.zeros(dc.shape)
+        cluster_phasor_plot(x, labels, nclusters=3)
+        plt.show()
+
     # TODO armar la imagen de pseudoclor con los valores del cluster
     # imcolor = mask_with_predict_clusters(x, pred_y + 1, g, s, im)
 
@@ -98,12 +112,44 @@ if spectral:
     # define pure components blue, green, red
     bgr = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     comb = [1, 0.5, 0.3]
-    avg, g, s = phasor_from_signal(bgr)
+    avg, gs, ss = phasor_from_signal(bgr)
     _, gc, sc = phasor_from_signal(comb)
 
     plot = PhasorPlot(allquadrants=True, title='Phasor plot')
-    plot.plot(g[0], s[0], color="b", markersize=10)
-    plot.plot(g[1], s[1], color="g", markersize=10)
-    plot.plot(g[2], s[2], color="r", markersize=10)
+    plot.plot(gs[0], ss[0], color="b", markersize=10)
+    plot.plot(gs[1], ss[1], color="g", markersize=10)
+    plot.plot(gs[2], ss[2], color="r", markersize=10)
     plot.plot(gc, sc, color="k", markersize=10)
+
+    # Implementar el spectral unmixing
+    sp_unmixing = True
+    if sp_unmixing:
+        bgr = [[0, 0, 1], [0, 1, 0], [1, 0, 0]]
+        avg, gs, ss = phasor_from_signal(bgr)
+        ncomp = 3
+        vecB = np.stack((g, s, np.ones(g.shape)), axis=-1)
+        matA = np.asarray([gs, ss, [1, 1, 1]])
+        frac = np.zeros((465, 465, 3))
+        for i in range(465):
+            for j in range(465):
+                frac[i, j], _, _, _ = np.linalg.lstsq(matA, vecB[i, j], rcond=None)
+
+        # plotear las tres imagenes por separado
+        frac_rgb = rgb2bgr(frac)
+        plt.figure()
+        plt.imshow(frac_rgb[0], cmap="Blues")
+        plt.title("Blue channel")
+
+        plt.figure()
+        plt.imshow(frac_rgb[1], cmap="Greens")
+        plt.title("Green channel")
+
+        plt.figure()
+        plt.imshow(frac_rgb[2], cmap="Reds")
+        plt.title("Red channel")
+
+        # Recontruir la de pseudocolor          
+        plt.figure()
+        plt.imshow(frac)
+
     plt.show()

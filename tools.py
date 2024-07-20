@@ -4,6 +4,7 @@ from matplotlib import colors
 import colorsys
 from skimage.filters import median
 from matplotlib.widgets import Cursor
+import math
 
 
 
@@ -350,4 +351,54 @@ def mask_with_predict_clusters(X, Y, g, s, im):
                 if X[n][0] == g[i][j] and X[n][1] == s[i][j]:
                     im[i][j] = Y[n]
     
-    return im 
+    return im
+
+
+def unmixing_from_phasor(
+        multi_harmonic_real,
+        multi_harmonic_imag,
+        matrixA):
+    
+    """ Return fractions in each pixel from multiple components.
+
+        Parametres
+    ----------
+    multi_harmonic_real : array_like
+        Real components of the phasor coordinate for many harmonics.
+    multi_harmonic_imag : array_like
+        Imaginary components of the phasor coordinate for many harmonics.
+    matrixA : array_like 
+        Coefficiency matrix for each components. 
+
+    Returns
+    -------
+    fractions : ndarray
+        Fractions of each components. """
+
+    multi_harmonic_real = np.asarray(multi_harmonic_real)
+    multi_harmonic_imag = np.asarray(multi_harmonic_imag)
+    matrixA = np.asarray(matrixA)
+
+    if multi_harmonic_real.shape != multi_harmonic_imag.shape:
+        raise ValueError("multi_harmonic_real and multi_harmonic_imag"
+                         "have different shape")
+    if matrixA.size == 0:
+        raise ValueError("matrixA is empty")
+    
+    ncomp = matrixA.shape[0] - 1
+    nh = math.floor(ncomp / 2)
+    if len(multi_harmonic_real.shape) == 2:
+        vecB = [multi_harmonic_real[j] for j in range(nh)] \
+            + [multi_harmonic_imag[j] for j in range(nh)] + [1]
+        return np.linalg.lstsq(matrixA, vecB, rcond=None)[0]
+    else:
+        fractions = np.zeros([multi_harmonic_real.shape[0], 
+                                 multi_harmonic_imag.shape[1], ncomp])
+        for r in range(multi_harmonic_real.shape[0]):
+            for c in range(multi_harmonic_real.shape[1]):
+                vecB = [multi_harmonic_real[r, c, j] for j in range(nh)] \
+                    + [multi_harmonic_imag[r, c, j] for j in range(nh)] + [1]
+                fractions[r, c] = np.linalg.lstsq(matrixA, vecB,
+                                                     rcond=None)[0]
+        return fractions
+    
