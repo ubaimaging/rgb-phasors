@@ -17,7 +17,7 @@ from phasorpy.cursors import (
 # ------------
 part1 = True
 if part1:
-    im = plt.imread('/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/B6ND/46-21B6ND01.tif')
+    im = plt.imread('/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/B6ND/46-21B6ND02.tif')
     bgr = rgb2bgr(im)
     dc, g, s = phasor(bgr)
     g = median_filter(g, 1)
@@ -70,27 +70,44 @@ if part1:
         plt.show()
 
     clusters = True
+    # Try different types of clusters
     if clusters:
         from sklearn.mixture import GaussianMixture
-        from sklearn.cluster import KMeans
+        from sklearn.cluster import KMeans, SpectralClustering, DBSCAN
 
         coord_g = g.flatten()
         coord_s = s.flatten()
         x = np.asarray([coord_g, coord_s]).transpose()
         num_clusters = 4
-    
-        # gmm = GaussianMixture(n_components=num_clusters, random_state=0)
-        kmeans = KMeans(n_clusters=num_clusters, random_state=0, n_init="auto")
-        
-        kmeans.fit(x)
-        labels = kmeans.predict(x)
 
-        cluster_phasor_plot(x, labels, nclusters=num_clusters)
-        mask = labels.reshape(g.shape[0], g.shape[1])
+
+        gmm = GaussianMixture(n_components=num_clusters, random_state=0)
+        gmm.fit(x)
+        gmm_labels = gmm.predict(x)
+
+        kmeans = KMeans(n_clusters=num_clusters, random_state=0, n_init="auto")
+        kmeans.fit(x)
+        kmeans_labels = kmeans.predict(x)
+
+        spectral = SpectralClustering(n_clusters=num_clusters, affinity='nearest_neighbors')
+        spectral.fit(x)
+        spectral_labels = spectral.predict(x)
+
+        dbscan = DBSCAN(eps=3, min_samples=num_clusters)
+        dbscan.fit(x)
+        dbscan_labels = dbscan.predict(x)
+    
+
+        cluster_phasor_plot(x, gmm_labels, nclusters=num_clusters)
+        cluster_phasor_plot(x, kmeans_labels, nclusters=num_clusters)
+        cluster_phasor_plot(x, spectral_labels, nclusters=num_clusters)
+        cluster_phasor_plot(x, dbscan_labels, nclusters=num_clusters)
+
+        # mask = labels.reshape(g.shape[0], g.shape[1])
         # bgr = [CATEGORICAL[1], CATEGORICAL[2], CATEGORICAL[0], CATEGORICAL[3]] 
         # segmented_image = pseudo_color(dc, mask, colors=bgr)
 
-        plt.figure()
-        plt.imshow(mask)
+        # plt.figure()
+        # plt.imshow(mask)
 
         plt.show()
