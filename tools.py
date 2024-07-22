@@ -162,7 +162,17 @@ def cluster_phasor_plot(X, pred_y, nclusters=3):
         ax.scatter(X[p0[0], 0], X[p0[0], 1], c='b')
         ax.scatter(X[p1[0], 0], X[p1[0], 1], c='g')
         ax.scatter(X[p2[0], 0], X[p2[0], 1], c='r')
-        # phasor_circle(ax)
+
+    if nclusters == 4:
+        p0 = np.where(pred_y == 0)
+        p1 = np.where(pred_y == 1)
+        p2 = np.where(pred_y == 2)
+        p3 = np.where(pred_y == 3)
+        ax.scatter(X[p0[0], 0], X[p0[0], 1], c='b')
+        ax.scatter(X[p1[0], 0], X[p1[0], 1], c='k')
+        ax.scatter(X[p2[0], 0], X[p2[0], 1], c='g')
+        ax.scatter(X[p3[0], 0], X[p3[0], 1], c='r')
+    
     if nclusters == 6:
         p0 = np.where(pred_y == 0)
         p1 = np.where(pred_y == 1)

@@ -78,14 +78,13 @@ if cursors:
 
 clusters = True
 if clusters:
-    from sklearn.cluster import KMeans
-
     coord_g = g.flatten()[~np.isnan(g.flatten())]
     coord_s = s.flatten()[~np.isnan(s.flatten())]
     x = np.asarray([coord_g, coord_s]).transpose()
 
     km = True 
     if km:
+        from sklearn.cluster import KMeans
         num_clusters = 3
         kmeans = KMeans(n_clusters=num_clusters, random_state=0, n_init="auto").fit(x)
         pred_y = kmeans.fit_predict(x)
