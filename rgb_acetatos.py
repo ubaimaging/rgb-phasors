@@ -22,6 +22,7 @@ path = "/Users/schutyb/Documents/Projects/rgb-phasors/data/acetatos/25-05/"
 # Lectura de los casos base RGB puros y de la luz basal
 parte1 = True
 if parte1:
+    
     # basal = plt.imread(path + "acetato_pure_blue.tif")
     basal = 0
 
