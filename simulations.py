@@ -33,6 +33,7 @@ dc, g, s = np.asarray(phasor(aux))
 
 plt.figure(1)
 plt.imshow(im)
+# plt.imsave("/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig1/f1_rgb.png", im)
 
 cursors = True
 if cursors:
