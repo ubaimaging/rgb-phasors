@@ -13,7 +13,7 @@ from phasorpy.color import CATEGORICAL
 from phasorpy.phasor import phasor_from_signal
 import math
 
-from tools import phasor, cluster_phasor_plot, rgb2bgr
+from tools import phasor, cluster_phasor_plot, rgb2bgr, map_to_rgb
 
 im = plt.imread("/Users/schutyb/Documents/Projects/rgb-phasors/data/simulations/rgbw.png")
 
@@ -33,15 +33,15 @@ dc, g, s = np.asarray(phasor(aux))
 
 plt.figure(1)
 plt.imshow(im)
+
+plot = PhasorPlot(allquadrants=True, title='Phasor plot')
+plot.hist2d(g.flatten(), s.flatten(), cmap="RdYlGn_r")
 # plt.imsave("/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig1/f1_rgb.png", im)
 
 cursors = True
 if cursors:
     cursors_real = [0.5, -0.245, -0.245]
     cursors_imag = [0, 0.43, -0.43]
-    circular_mask = mask_from_circular_cursor(
-        g, s, cursors_real, cursors_imag, radius=0.5
-    )
 
     plot = PhasorPlot(allquadrants=True, title='Phasor plot')
     plot.hist2d(g.flatten(), s.flatten(), cmap="RdYlGn_r")
@@ -69,12 +69,17 @@ if cursors:
         color=CATEGORICAL[0],
         linestyle='-',
     )
-    bgr = [CATEGORICAL[1], CATEGORICAL[2], CATEGORICAL[0]] 
-    segmented_image = pseudo_color(dc, circular_mask, colors=bgr)
 
-    fig, ax = plt.subplots()
-    ax.set_title('Segmented image with circular cursors')
-    ax.imshow(segmented_image)
+    cursors_mask = mask_from_circular_cursor(
+        g, s, cursors_real, cursors_imag, radius=0.5)
+    
+    auxmask = np.transpose(cursors_mask, (1, 2, 0)).astype(int)
+
+    auxx = map_to_rgb(auxmask)
+
+    plt.figure(figsize=(10, 10))
+    plt.imshow(auxx)
+    plt.title("Pseudocolor image with cursors")
     # plt.show()
 
 clusters = True
@@ -82,30 +87,50 @@ if clusters:
     coord_g = g.flatten()[~np.isnan(g.flatten())]
     coord_s = s.flatten()[~np.isnan(s.flatten())]
     x = np.asarray([coord_g, coord_s]).transpose()
+    xt = np.asarray([g.flatten(), s.flatten()]).transpose()
+    num_clusters = 3
 
     km = True 
     if km:
         from sklearn.cluster import KMeans
-        num_clusters = 3
-        kmeans = KMeans(n_clusters=num_clusters, random_state=0, n_init="auto").fit(x)
-        pred_y = kmeans.fit_predict(x)
+        kmeans = KMeans(n_clusters=num_clusters, random_state=100, n_init="auto").fit(x)
+        labels = kmeans.fit_predict(x)
         cm = kmeans.cluster_centers_
-        cluster_phasor_plot(x, pred_y, nclusters=num_clusters)
-        # plt.show()
-    gmm = False
+
+        cluster_phasor_plot(x, labels, nclusters=num_clusters, title="Kmeans")
+        
+        from tools import  construct_label_array_optimized, map_values_to_rgb
+
+        labels_new = construct_label_array_optimized(xt, x, labels+1)
+        imcolor = map_values_to_rgb(labels_new.reshape([465, 465]) * mask)
+        
+        plt.figure(figsize=(10, 10))
+        plt.imshow(imcolor)
+        plt.title("Pseudocolor Kmeans")
+
+    gmm = True
     if gmm:
         from sklearn.mixture import GaussianMixture
-        gmm = GaussianMixture(n_components=3, random_state=0)
+        cov_types = ['full', 'tied', 'diag', 'spherical']
+        i = 1
+        gmm = GaussianMixture(n_components=3, random_state=100, covariance_type=cov_types[i], 
+                              init_params='kmeans')
         gmm.fit(x)
         labels = gmm.predict(x)
         means = gmm.means_
         covariances = gmm.covariances_
 
-        cluster_phasor_plot(x, labels, nclusters=3)
-        plt.show()
+        cluster_phasor_plot(x, labels, nclusters=3, title=cov_types[i])
+        
+        from tools import  construct_label_array_optimized, map_values_to_rgb
 
-    # TODO armar la imagen de pseudoclor con los valores del cluster
-    # imcolor = mask_with_predict_clusters(x, pred_y + 1, g, s, im)
+        labels_new = construct_label_array_optimized(xt, x, labels+1)
+        imcolor = map_values_to_rgb(labels_new.reshape([465, 465]) * mask)
+        
+        plt.figure(figsize=(10, 10))
+        plt.imshow(imcolor)
+        plt.title("Pseudocolor image: " + cov_types[i])
+        # plt.show()
 
 spectral = True
 if spectral: 
@@ -124,32 +149,51 @@ if spectral:
     # Implementar el spectral unmixing
     sp_unmixing = True
     if sp_unmixing:
-        bgr = [[0, 0, 1], [0, 1, 0], [1, 0, 0]]
-        avg, gs, ss = phasor_from_signal(bgr)
-        ncomp = 3
-        vecB = np.stack((g, s, np.ones(g.shape)), axis=-1)
-        matA = np.asarray([gs, ss, [1, 1, 1]])
-        frac = np.zeros((465, 465, 3))
-        for i in range(465):
-            for j in range(465):
-                frac[i, j], _, _, _ = np.linalg.lstsq(matA, vecB[i, j], rcond=None)
+        opt1 = False
+        if opt1:
+            bgr = [[0, 0, 1], [0, 1, 0], [1, 0, 0]]
+            avg, gs, ss = phasor_from_signal(bgr)
+            ncomp = 3
+            vecB = np.stack((g, s, np.ones(g.shape)), axis=-1)
+            matA = np.asarray([gs, ss, [1, 1, 1]])
+            frac = np.zeros((465, 465, 3))
+            for i in range(465):
+                for j in range(465):
+                    frac[i, j], _, _, _ = np.linalg.lstsq(matA, vecB[i, j], rcond=None)
+
+        opt2 = True
+        if opt2:
+            bgr = [[0, 0, 1], [0, 1, 0], [1, 0, 0]]
+            avg, gs, ss = phasor_from_signal(bgr)
+
+            ncomp = 3
+            vecB = np.stack((g, s, np.ones(g.shape)), axis=-1)  # Dimensions: (465, 465, 3)
+            # Matrix A with dimensions (3, 3)
+            matA = np.array([gs, ss, [1, 1, 1]])
+            # Flatten the first two dimensions of vecB to apply lstsq at once
+            vecB_flat = vecB.reshape(-1, 3)  # Dimensions: (465*465, 3)
+            # Apply lstsq to each row of vecB_flat with respect to matA
+            frac_flat, _, _, _ = np.linalg.lstsq(matA, vecB_flat.T, rcond=None)
+            # Reshape the result back to its original form
+            frac = frac_flat.T.reshape(465, 465, 3)
+
 
         # plotear las tres imagenes por separado
         frac_rgb = rgb2bgr(frac)
-        plt.figure()
+        plt.figure(figsize=(10, 10))
         plt.imshow(frac_rgb[0], cmap="Blues")
         plt.title("Blue channel")
 
-        plt.figure()
+        plt.figure(figsize=(10, 10))
         plt.imshow(frac_rgb[1], cmap="Greens")
         plt.title("Green channel")
 
-        plt.figure()
+        plt.figure(figsize=(10, 10))
         plt.imshow(frac_rgb[2], cmap="Reds")
         plt.title("Red channel")
 
         # Recontruir la de pseudocolor          
-        plt.figure()
+        plt.figure(figsize=(10, 10))
         plt.imshow(frac)
 
     plt.show()

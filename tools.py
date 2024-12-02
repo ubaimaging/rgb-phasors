@@ -148,19 +148,19 @@ def phasor_clustering(dc, x, nclusters = 2):
     return pred_y, imp, cm
 
 
-def cluster_phasor_plot(X, pred_y, nclusters=3):
+def cluster_phasor_plot(X, pred_y, nclusters=3, title= None):
     from phasorpy.plot import PhasorPlot
     from matplotlib import pyplot
-    fig, ax = plt.subplots(figsize=(6, 6))
+    fig, ax = plt.subplots(figsize=(10, 10))
     ax = pyplot.subplot(1, 1, 1)
-    plot = PhasorPlot(ax=ax, allquadrants=True, title='Phasor plot')
+    plot = PhasorPlot(ax=ax, allquadrants=True, title='Phasor plot: ' + title)
 
     if nclusters == 3:
         p0 = np.where(pred_y == 0)
         p1 = np.where(pred_y == 1)
         p2 = np.where(pred_y == 2)
-        ax.scatter(X[p0[0], 0], X[p0[0], 1], c='b')
-        ax.scatter(X[p1[0], 0], X[p1[0], 1], c='g')
+        ax.scatter(X[p0[0], 0], X[p0[0], 1], c='g')
+        ax.scatter(X[p1[0], 0], X[p1[0], 1], c='b')
         ax.scatter(X[p2[0], 0], X[p2[0], 1], c='r')
 
     if nclusters == 4:
@@ -369,6 +369,8 @@ def unmixing_from_phasor(
         multi_harmonic_imag,
         matrixA):
     
+    import numpy 
+    
     """ Return fractions in each pixel from multiple components.
 
         Parametres
@@ -385,9 +387,9 @@ def unmixing_from_phasor(
     fractions : ndarray
         Fractions of each components. """
 
-    multi_harmonic_real = np.asarray(multi_harmonic_real)
-    multi_harmonic_imag = np.asarray(multi_harmonic_imag)
-    matrixA = np.asarray(matrixA)
+    multi_harmonic_real = numpy.asarray(multi_harmonic_real)
+    multi_harmonic_imag = numpy.asarray(multi_harmonic_imag)
+    matrixA = numpy.asarray(matrixA)
 
     if multi_harmonic_real.shape != multi_harmonic_imag.shape:
         raise ValueError("multi_harmonic_real and multi_harmonic_imag"
@@ -400,15 +402,105 @@ def unmixing_from_phasor(
     if len(multi_harmonic_real.shape) == 2:
         vecB = [multi_harmonic_real[j] for j in range(nh)] \
             + [multi_harmonic_imag[j] for j in range(nh)] + [1]
-        return np.linalg.lstsq(matrixA, vecB, rcond=None)[0]
+        return numpy.linalg.lstsq(matrixA, vecB, rcond=None)[0]
     else:
-        fractions = np.zeros([multi_harmonic_real.shape[0], 
+        fractions = numpy.zeros([multi_harmonic_real.shape[0], 
                                  multi_harmonic_imag.shape[1], ncomp])
         for r in range(multi_harmonic_real.shape[0]):
             for c in range(multi_harmonic_real.shape[1]):
                 vecB = [multi_harmonic_real[r, c, j] for j in range(nh)] \
                     + [multi_harmonic_imag[r, c, j] for j in range(nh)] + [1]
-                fractions[r, c] = np.linalg.lstsq(matrixA, vecB,
+                fractions[r, c] = numpy.linalg.lstsq(matrixA, vecB,
                                                      rcond=None)[0]
         return fractions
     
+
+
+def map_to_rgb(array):
+    """
+    Mapea combinaciones de ceros y unos a un espacio de color personalizado.
+
+    :param array: numpy array de dimensiones (n, n, 3) con valores 0 y 1
+    :return: numpy array de dimensiones (n, n, 3) con colores personalizados en formato RGB
+    """
+    # Validar que el array tiene tres canales
+    if array.shape[-1] != 3:
+        raise ValueError("El array debe tener 3 canales en la última dimensión.")
+    
+    # Definir el mapeo de combinaciones a colores según la nueva base
+    color_map = {
+        (0, 0, 0): [0, 0, 0],      # Negro
+        (1, 0, 0): [0, 0, 255],    # Azul
+        (0, 1, 0): [0, 255, 0],    # Verde
+        (0, 0, 1): [255, 0, 0],    # Rojo
+        (1, 1, 0): [0, 255, 255],  # Cian (azul + verde)
+        (1, 0, 1): [255, 0, 255],  # Magenta (azul + rojo)
+        (0, 1, 1): [255, 255, 0],  # Amarillo (verde + rojo)
+        (1, 1, 1): [255, 255, 255] # Blanco
+    }
+
+    # Crear una imagen RGB del mismo tamaño
+    rgb_image = np.zeros(array.shape, dtype=np.uint8)
+
+    # Asignar colores según las combinaciones
+    for combination, color in color_map.items():
+        mask = (array[:, :, 0] == combination[0]) & \
+               (array[:, :, 1] == combination[1]) & \
+               (array[:, :, 2] == combination[2])
+        rgb_image[mask] = color
+
+    return rgb_image
+
+
+def construct_label_array_optimized(xt, xn, labels):
+    """
+    Construye un array optimizado para grandes volúmenes de datos,
+    asignando los valores de labels a posiciones de xt coincidentes con xn.
+    
+    Args:
+        xt (np.ndarray): Array de dimensión (M, 2).
+        xn (np.ndarray): Array de dimensión (N, 2).
+        labels (np.ndarray): Array de dimensión (N,).
+    
+    Returns:
+        np.ndarray: Array de dimensión (M,) con valores de labels o ceros.
+    """
+    # Asegurarse de que los arrays sean contiguos en memoria
+    xt = np.ascontiguousarray(xt)
+    xn = np.ascontiguousarray(xn)
+    
+    # Crear un array inicializado con ceros del mismo tamaño que xt
+    result = np.zeros(len(xt), dtype=labels.dtype)
+
+    # Convertir xn y xt a tuplas para usarlas como claves hashables
+    xn_tuples = [tuple(row) for row in xn]
+    xt_tuples = [tuple(row) for row in xt]
+
+    # Construir un índice que asocia xn con sus labels
+    index_map = {coord: label for coord, label in zip(xn_tuples, labels)}
+
+    # Asignar valores usando una comprensión de lista
+    result = np.array([index_map.get(coord, 0) for coord in xt_tuples], dtype=labels.dtype)
+
+    return result
+
+
+def map_values_to_rgb(array):
+    """
+    Convierte un array con valores 1, 2, 3 a colores RGB.
+    
+    Args:
+        array (np.ndarray): Array con valores 1, 2 y 3.
+    
+    Returns:
+        np.ndarray: Array RGB de dimensiones (H, W, 3).
+    """
+    # Crear un array RGB inicializado con ceros
+    rgb_array = np.zeros((*array.shape, 3), dtype=np.uint8)
+    
+    # Mapear valores a colores
+    rgb_array[array == 1] = [0, 255, 0]    # Rojo para 1
+    rgb_array[array == 2] = [0, 0, 255]    # Verde para 2
+    rgb_array[array == 3] = [255, 0, 0]    # Azul para 3
+    
+    return rgb_array
