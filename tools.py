@@ -1,11 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
-import colorsys
 from skimage.filters import median
 from matplotlib.widgets import Cursor
 import math
-
+import seaborn as sns
+import pandas as pd
+import tifffile as tiff
+import os
+from matplotlib.colors import hsv_to_rgb
 
 
 def phasor(image_stack, harmonic=1, axis=0):
@@ -30,6 +33,15 @@ def phasor(image_stack, harmonic=1, axis=0):
     g /= dc
     s = data[harmonic].imag
     s /= -dc
+    return dc, g, s
+
+def unnormalized_phasor(image_stack, harmonic=1, axis=0):
+
+    data = np.fft.fft(image_stack, axis=0, norm='ortho')
+
+    dc = data[0].real
+    g = data[harmonic].real
+    s = -data[harmonic].imag
     return dc, g, s
 
 
@@ -101,7 +113,7 @@ def circle_lines(ax, phase):
 
 
 def phasor_figure(x, y, phases=None, circle_plot=False, phases_lines=False):
-    fig, ax = plt.subplots(figsize=(8, 8))
+    fig, ax = plt.subplots(figsize=(7, 7))
     fig.suptitle('Phasor')
     ax.hist2d(x, y, bins=256, cmap="RdYlGn_r", norm=colors.LogNorm(), range=[[-1, 1], [-1, 1]])
     if circle_plot:
@@ -130,6 +142,22 @@ def rgb2bgr(im):
     return bgr
 
 
+def convert_rgb_to_bgr(image):
+    """
+    Cambia la posición de las coordenadas de color en una imagen RGB
+    para convertirla a formato BGR.
+    
+    Args:
+        image: Una matriz numpy de forma (H, W, 3) que representa una imagen RGB.
+    
+    Returns:
+        Una matriz numpy con los canales de color intercambiados a formato BGR.
+    """
+    # Intercambiar los canales rojo y azul
+    bgr_image = image[..., [2, 1, 0]]
+    return bgr_image
+
+
 def median_filter(im, n):
     imf = np.copy(im)
     for i in range(n):
@@ -148,20 +176,27 @@ def phasor_clustering(dc, x, nclusters = 2):
     return pred_y, imp, cm
 
 
-def cluster_phasor_plot(X, pred_y, nclusters=3, title= None):
+def cluster_phasor_plot(X, pred_y, nclusters=3, title= " ", cluster_type=1):
     from phasorpy.plot import PhasorPlot
     from matplotlib import pyplot
-    fig, ax = plt.subplots(figsize=(10, 10))
+    fig, ax = plt.subplots(figsize=(7, 7))
     ax = pyplot.subplot(1, 1, 1)
-    plot = PhasorPlot(ax=ax, allquadrants=True, title='Phasor plot: ' + title)
+    if cluster_type == 1:
+        plot = PhasorPlot(ax=ax, allquadrants=True, title='Phasor plot: ' + title)
 
+    if nclusters == 2:
+        p0 = np.where(pred_y == 0)
+        p1 = np.where(pred_y == 1)
+        ax.scatter(X[p0[0], 0], X[p0[0], 1], c='b')
+        ax.scatter(X[p1[0], 0], X[p1[0], 1], c='lime')
+    
     if nclusters == 3:
         p0 = np.where(pred_y == 0)
         p1 = np.where(pred_y == 1)
         p2 = np.where(pred_y == 2)
-        ax.scatter(X[p0[0], 0], X[p0[0], 1], c='g')
+        ax.scatter(X[p0[0], 0], X[p0[0], 1], c='r')
         ax.scatter(X[p1[0], 0], X[p1[0], 1], c='b')
-        ax.scatter(X[p2[0], 0], X[p2[0], 1], c='r')
+        ax.scatter(X[p2[0], 0], X[p2[0], 1], c='lime')
 
     if nclusters == 4:
         p0 = np.where(pred_y == 0)
@@ -170,7 +205,7 @@ def cluster_phasor_plot(X, pred_y, nclusters=3, title= None):
         p3 = np.where(pred_y == 3)
         ax.scatter(X[p0[0], 0], X[p0[0], 1], c='b')
         ax.scatter(X[p1[0], 0], X[p1[0], 1], c='k')
-        ax.scatter(X[p2[0], 0], X[p2[0], 1], c='g')
+        ax.scatter(X[p2[0], 0], X[p2[0], 1], c='lime')
         ax.scatter(X[p3[0], 0], X[p3[0], 1], c='r')
     
     if nclusters == 6:
@@ -181,7 +216,7 @@ def cluster_phasor_plot(X, pred_y, nclusters=3, title= None):
         p4 = np.where(pred_y == 4)
         p5 = np.where(pred_y == 5)
         ax.scatter(X[p0[0], 0], X[p0[0], 1], c='cyan')
-        ax.scatter(X[p1[0], 0], X[p1[0], 1], c='g')
+        ax.scatter(X[p1[0], 0], X[p1[0], 1], c='lime')
         ax.scatter(X[p2[0], 0], X[p2[0], 1], c='yellow')
         ax.scatter(X[p3[0], 0], X[p3[0], 1], c='magenta')
         ax.scatter(X[p4[0], 0], X[p4[0], 1], c='b')
@@ -499,8 +534,306 @@ def map_values_to_rgb(array):
     rgb_array = np.zeros((*array.shape, 3), dtype=np.uint8)
     
     # Mapear valores a colores
-    rgb_array[array == 1] = [0, 255, 0]    # Rojo para 1
-    rgb_array[array == 2] = [0, 0, 255]    # Verde para 2
-    rgb_array[array == 3] = [255, 0, 0]    # Azul para 3
+    rgb_array[array == 1] = [255, 0, 0]    # Azul para 1
+    rgb_array[array == 2] = [0, 0, 255]    # Rojo para 2
+    rgb_array[array == 3] = [0, 255, 0]    # Verde para 3
     
     return rgb_array
+
+
+def plot_separated_boxplots_and_violin(d):
+    """
+    Genera una figura con boxplots y swarmplots, y una figura separada con violin plots,
+    mostrando medias y desviaciones estándar con líneas en el violin plot y valores en el xlabel.
+    
+    Parámetros:
+    - d: np.array, un array de tamaño (2, 100).
+    """
+    # Verificar que los datos tengan la forma esperada
+    if d.shape != (2, 100):
+        raise ValueError("El array de entrada debe tener forma (2, 100)")
+
+    # Reorganizar a (2, 10, 10)
+    d_reshaped = d.reshape(2, 10, 10)
+
+    # Calcular medias y desviaciones estándar para los subgrupos
+    means = np.mean(d_reshaped, axis=2)  # (2, 10)
+    stds = np.std(d_reshaped, axis=2)    # (2, 10)
+
+    # Colores y etiquetas
+    violin_colors = ['#DFF2FF', '#E6FFE6']  # Azul claro y verde claro
+    labels = ['ND', 'ND Inst']
+
+    # Figura 1: Boxplots
+    fig1, ax1 = plt.subplots(figsize=(12, 6))
+
+    # Boxplots y swarmplot con los datos reorganizados
+    box_data = []
+    box_labels = []
+
+    for group_idx in range(2):
+        for subgroup_idx in range(10):
+            box_data.append(d_reshaped[group_idx, subgroup_idx])
+            box_labels.extend([f"{labels[group_idx]}-{subgroup_idx + 1}"] * 10)
+
+    # Combinar datos en un DataFrame para Seaborn
+    df = pd.DataFrame({
+        'Values': np.concatenate(box_data),
+        'Group': box_labels
+    })
+
+    # Boxplot con Seaborn
+    sns.boxplot(
+        data=df,
+        x='Group',
+        y='Values',
+        ax=ax1,
+        palette=sns.color_palette([violin_colors[0]] * 10 + [violin_colors[1]] * 10),
+        showmeans=True,
+        meanprops={
+            "marker": "o",
+            "markerfacecolor": "red",  # Puntos de media en rojo
+            "markeredgecolor": "red"
+        },
+        flierprops={"marker": "*", "color": "black", "alpha": 0.8}  # Outliers como puntos negros
+    )
+
+    # Swarmplot sobre el Boxplot
+    sns.swarmplot(
+        data=df,
+        x='Group',
+        y='Values',
+        ax=ax1,
+        color='black',  # Puntos negros
+        alpha=0.8,
+        size=3
+    )
+
+    # Configuración del boxplot y swarmplot
+    ax1.set_title("Boxplot with Swarmplot", fontsize=16, weight='bold')
+    ax1.set_xlabel("Subgroups", fontsize=14, weight='bold')
+    ax1.set_ylabel("Values", fontsize=14, weight='bold')
+    ax1.tick_params(axis='x', labelsize=12)  # Configuración del tamaño de las etiquetas
+    ax1.tick_params(axis='y', labelsize=12)  # Configuración del tamaño de las etiquetas
+    ax1.set_xticklabels(ax1.get_xticklabels(), fontweight='bold', rotation=90)  # Etiquetas X verticales
+    ax1.set_yticklabels(ax1.get_yticklabels(), fontweight='bold')  # Pesos en Y
+
+    # Agregar leyenda al gráfico de boxplots
+    ax1.legend(
+        handles=[
+            plt.Line2D([0], [0], color=violin_colors[0], lw=4, label='ND Boxplot'),
+            plt.Line2D([0], [0], color=violin_colors[1], lw=4, label='ND Inst Boxplot'),
+            plt.Line2D([0], [0], marker='*', color='black', lw=0, label='Outliers'),
+            plt.Line2D([0], [0], marker='o', color='red', lw=0, label='Mean')
+        ],
+        title="Legend",
+        loc="upper left",
+        fontsize=10,
+        title_fontsize=12
+    )
+
+    # Ajustar y mostrar la figura 1
+    plt.tight_layout()
+    # plt.show()
+
+    # Figura 2: Violin Plots
+    fig2, ax2 = plt.subplots(figsize=(8, 6))
+
+    # Violin plot con los datos originales (2, 100)
+    x_labels = []  # Para construir el xlabel
+
+    for group_idx in range(2):
+        parts = ax2.violinplot(
+            d[group_idx],
+            positions=[group_idx],
+            showmeans=False,
+            showextrema=False,
+            showmedians=False
+        )
+        # Personalizar estilo de los violines
+        for pc in parts['bodies']:
+            pc.set_facecolor(violin_colors[group_idx])  # Color de fondo claro
+            pc.set_edgecolor('black')  # Borde negro
+            pc.set_alpha(0.7)
+
+        # Calcular media y std del grupo
+        group_mean = np.mean(d[group_idx])
+        group_std = np.std(d[group_idx])
+
+        # Dibujar líneas cortas para la media y las desviaciones estándar
+        line_width = 0.2  # Ancho relativo de las líneas
+        ax2.plot(
+            [group_idx - line_width, group_idx + line_width],
+            [group_mean, group_mean],
+            color='red', linestyle='--', linewidth=3, label='Mean' if group_idx == 0 else ""
+        )
+        ax2.plot(
+            [group_idx - line_width, group_idx + line_width],
+            [group_mean + 2 * group_std, group_mean + 2 * group_std],
+            color='black', linestyle='--', linewidth=3, label='+2 Std' if group_idx == 0 else ""
+        )
+        ax2.plot(
+            [group_idx - line_width, group_idx + line_width],
+            [group_mean - 2 * group_std, group_mean - 2 * group_std],
+            color='black', linestyle='--', linewidth=3, label='-2 Std' if group_idx == 0 else ""
+        )
+
+        # Construir la etiqueta para el xlabel
+        x_labels.append(f"{labels[group_idx]}:\nμ={group_mean:.2f}, σ={group_std:.2f}")
+
+    # Configuración del violin plot
+    ax2.set_xticks([0, 1])
+    ax2.set_xticklabels(x_labels, fontsize=12, weight='bold')
+    ax2.set_title("Violin Plot", fontsize=16, weight='bold')
+    ax2.set_xlabel("Groups", fontsize=14, weight='bold')
+    ax2.set_ylabel("Values", fontsize=14, weight='bold')
+
+    # Leyenda de las líneas
+    ax2.legend(loc="upper left", fontsize=10, title="Legend", title_fontsize=12)
+
+    # Ajustar y mostrar la figura 2
+    plt.tight_layout()
+    plt.show()
+
+
+
+def read_and_plot_tif_tifffile(image_path):
+    """
+    Lee y muestra una imagen TIFF usando tifffile.
+
+    Parámetros:
+    - image_path (str): Ruta de la imagen TIFF.
+    """
+    try:
+        # Leer la imagen TIFF
+        img = tiff.imread(image_path)
+
+        # Mostrar información básica
+        print(f"Tamaño de la imagen: {img.shape}")
+        print(f"Tipo de datos: {img.dtype}")
+
+        # Determinar colormap si es necesario
+        cmap = 'cividis' if img.ndim == 2 else None
+
+        # Mostrar la imagen
+        plt.figure(figsize=(7, 7))
+        plt.imshow(img, cmap=cmap)
+        plt.axis('off')  # Desactiva los ejes
+        plt.title(f"Imagen: {os.path.basename(image_path)}", fontsize=14, weight='bold')
+        plt.tight_layout()
+        # plt.show()
+
+    except Exception as e:
+        print(f"Error al leer la imagen TIFF: {e}")
+
+
+def plot_all_tifs_in_folder(folder_path):
+    """
+    Busca y muestra todas las imágenes TIFF en una carpeta usando tifffile.
+
+    Parámetros:
+    - folder_path (str): Ruta de la carpeta que contiene imágenes TIFF.
+    """
+    try:
+        # Obtener lista de archivos en la carpeta
+        files = [f for f in os.listdir(folder_path) if f.lower().endswith('.tif') or f.lower().endswith('.tiff')]
+
+        if not files:
+            print("No se encontraron imágenes TIFF en la carpeta.")
+            return
+
+        # Leer y mostrar cada archivo TIFF
+        for file_name in files:
+            file_path = os.path.join(folder_path, file_name)
+            print(f"Procesando: {file_path}")
+            read_and_plot_tif_tifffile(file_path)
+
+    except Exception as e:
+        print(f"Error al procesar la carpeta: {e}")
+
+
+def invert_mask(im):
+    return im * - 1 + np.max(im) 
+
+
+def transform_array(array):
+    """
+    Transforma un array de dimensión (n, m, 4) a (n, m, 3), 
+    eliminando la última coordenada y 
+    cambiando el orden de la primera y segunda coordenada.
+
+    Args:
+        array (numpy.ndarray): Array de entrada con dimensión (n, m, 4).
+
+    Returns:
+        numpy.ndarray: Array transformado con dimensión (n, m, 3).
+    """
+    if array.shape[-1] != 4:
+        raise ValueError("El array debe tener dimensión (n, m, 4) en su última coordenada.")
+
+    # Eliminar la última coordenada
+    transformed = array[:, :, :3]
+
+    # Intercambiar la primera entrada con la segunda
+    transformed[:, :, [0, 1]] = transformed[:, :, [1, 0]]
+
+    return transformed
+
+
+def replace_with_nan(array):
+    """
+    Reemplaza todas las entradas (1, 1, 1) en un array tridimensional con NaN.
+
+    Args:
+        array (numpy.ndarray): Array de entrada de dimensión (n, m, k), donde k >= 3.
+
+    Returns:
+        numpy.ndarray: Array con las entradas (1, 1, 1) reemplazadas por NaN.
+    """
+    if array.shape[-1] < 3:
+        raise ValueError("El array debe tener al menos 3 dimensiones en la última coordenada.")
+
+    # Crear una máscara para identificar las entradas (1, 1, 1)
+    mask = (array[..., 0] == 1) & (array[..., 1] == 1) & (array[..., 2] == 1)
+
+    # Reemplazar las entradas (1, 1, 1) por NaN
+    array = array.astype(float)  # Convertir a tipo float para admitir NaN
+    array[mask] = np.nan
+
+    return array
+
+
+def generate_color_wheel_image(resolution=256):
+    """
+    Genera una imagen RGB de una rueda de colores basada en el modelo HSV.
+    
+    Args:
+        resolution: Resolución de la imagen (pixels por lado, cuadrada).
+    
+    Returns:
+        Una matriz RGB que representa la rueda de colores.
+    """
+    # Crear coordenadas x, y centradas
+    x = np.linspace(-1, 1, resolution)
+    y = np.linspace(-1, 1, resolution)
+    xv, yv = np.meshgrid(x, y)
+    
+    # Convertir coordenadas a ángulo (hue) y radio (valor)
+    angle = np.arctan2(yv, xv)  # Ángulo en radianes
+    angle = (angle + 2 * np.pi) % (2 * np.pi)  # Normalizar entre 0 y 2pi
+    hue = angle / (2 * np.pi)  # Convertir a rango [0, 1]
+    radius = np.sqrt(xv**2 + yv**2)  # Distancia radial desde el centro
+    
+    # Crear la imagen HSV
+    saturation = np.clip(radius, 0, 1)  # Saturación depende del radio
+    value = np.ones_like(radius)  # Valor constante (pleno brillo)
+    hsv_image = np.dstack((hue, saturation, value))
+    
+    # Convertir la imagen HSV a RGB
+    rgb_image = hsv_to_rgb(hsv_image)
+    
+    # Aplicar un círculo para recortar los valores fuera del rango [0, 1] en radio
+    mask = radius <= 1
+    rgb_image[~mask] = 1  # Fuera del círculo, establecer en blanco
+    
+    return rgb_image
