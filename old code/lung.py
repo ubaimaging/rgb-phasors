@@ -108,6 +108,8 @@ if part3:
 
 parte3_1 = False
 if parte3_1:
+    import seaborn as sns
+
     data1 = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/areas.npy")
     data2 = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/areas2.npy")
     data = np.zeros(200)
@@ -118,17 +120,11 @@ if parte3_1:
     dmean = np.mean(d, axis=1)
     dstd = np.std(d, axis=1)
 
-    print(dmean)
-    print(dstd)
+    from tools import plot_separated_boxplots_and_violin
+    plot_separated_boxplots_and_violin(d)
 
-    fig, ax = plt.subplots()
-    ax.violinplot(d[0], [0], showmeans=True)
-    ax.violinplot(d[1], [1], showmeans=True)
-    ax.set_title('Violin plot')
-    # plt.savefig("/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig2/violins.png", dpi=300)
-    plt.show()
 
-plotty2 = True
+plotty2 = False
 if plotty2:
     # data = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/lung_mask.npy")
     data = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/lung_mask2.npy")
@@ -162,8 +158,8 @@ if plotty2:
     # plt.savefig("/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig2/phasor.png", dpi=300)
 
     fig, ax = plt.subplots(figsize=(8, 8))
-    ax.scatter(X[p0[0], 0], X[p0[0], 1], c='b')
-    ax.scatter(X[p1[0], 0], X[p1[0], 1], c='r')
+    ax.scatter(X[p0[0], 0], X[p0[0], 1], c='r')
+    ax.scatter(X[p1[0], 0], X[p1[0], 1], c='b')
     # ax.scatter(X[p2[0], 0], X[p2[0], 1], c='r')
     tools.phasor_circle(ax)
     # plt.savefig("/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig2/phasor_c.png", dpi=300)
@@ -173,9 +169,9 @@ if plotty2:
     for i in range(data.shape[1]):
         for j in range(data.shape[2]):
             if data[ind][i][j] == 1:
-                imcolor[i, j, :] = 1, 0, 0
-            else:
                 imcolor[i, j, :] = 0, 0, 1
+            else:
+                imcolor[i, j, :] = 1, 0, 0
     
     imcolor = imcolor.reshape([data.shape[1], data.shape[2], 3])
                 
@@ -184,3 +180,28 @@ if plotty2:
     # plt.savefig("/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig2/mask.png", dpi=300)
     plt.show()
     
+
+# buscar mascara 
+
+control = True
+data = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/lung_mask2.npy")
+
+if control:
+    data = np.load("/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/datos/lung_mask2.npy")
+    ind = 0
+    imcolor = np.zeros([data.shape[1], data.shape[2], 3])
+
+    for ind in range(100):
+        for i in range(data.shape[1]):
+            for j in range(data.shape[2]):
+                if data[ind][i][j] == 1:
+                    imcolor[i, j, :] = 0, 0, 1
+                else:
+                    imcolor[i, j, :] = 1, 0, 0
+
+        imcolor = imcolor.reshape([data.shape[1], data.shape[2], 3])
+                    
+        plt.figure(4)
+        plt.imshow(imcolor)
+        # plt.savefig("/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig2/mask.png", dpi=300)
+        plt.show()

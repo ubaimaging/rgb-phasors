@@ -52,3 +52,4 @@ if part2:
 
     path_dd = "/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/fiji mask/default_dark/B6ND-INST_mask/"
     name_dd = sorted(os.listdir(path_dd))[1:]
+    

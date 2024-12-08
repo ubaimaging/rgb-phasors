@@ -5,9 +5,9 @@ import tools
 import os
 
 # this code segmentate each image separtatly
-# we want to segmentate al all them according to the phasor of al them.
+# we want to segmentate al all them according to their phasor.
 
-# Calcular los phadors dc, g y s the todas las imagenes y 
+# Calcular los phasors dc, g y s the todas las imagenes y 
 # segmnetar ese gran phasor para encontrar dos familias de datos
 
 """
@@ -19,15 +19,16 @@ import os
 6 - Calculate area
 """
 
-path = '/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/B6ND-INST/'
+path = '/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/B6ND_INST/'
 name = sorted(os.listdir(path))
 # n = [46, 47, 52, 54, 70, 91, 92, 93, 94, 95]
 n = ["046", "063", "065", "066", "067", 103, 104, 105, 106, 125, 126]
 
 table = np.zeros([2, len(n)])
+
 cal_areas = False
 
-if cal_areas == True:
+if cal_areas:
     i = 0
     k = 0
     while k < len(n):

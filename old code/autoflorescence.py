@@ -37,7 +37,7 @@ if liver:
     
 
 
-skin = False
+skin = True
 if skin:
     rgbn = plt.imread("/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig3/nev-mel/16252_10x_r1.tif")
     rgbm = plt.imread("/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig3/nev-mel/18852_10x_r1.tif")
