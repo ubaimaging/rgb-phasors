@@ -203,10 +203,10 @@ def cluster_phasor_plot(X, pred_y, nclusters=3, title= " ", cluster_type=1):
         p1 = np.where(pred_y == 1)
         p2 = np.where(pred_y == 2)
         p3 = np.where(pred_y == 3)
-        ax.scatter(X[p0[0], 0], X[p0[0], 1], c='b')
-        ax.scatter(X[p1[0], 0], X[p1[0], 1], c='k')
+        ax.scatter(X[p0[0], 0], X[p0[0], 1], c='r')
+        ax.scatter(X[p1[0], 0], X[p1[0], 1], c='blue')
         ax.scatter(X[p2[0], 0], X[p2[0], 1], c='lime')
-        ax.scatter(X[p3[0], 0], X[p3[0], 1], c='r')
+        ax.scatter(X[p3[0], 0], X[p3[0], 1], c='k')
     
     if nclusters == 6:
         p0 = np.where(pred_y == 0)
@@ -837,3 +837,59 @@ def generate_color_wheel_image(resolution=256):
     rgb_image[~mask] = 1  # Fuera del círculo, establecer en blanco
     
     return rgb_image
+
+
+def map_mask_to_colors(mask, ind=[0, 1, 2, 3]):
+    """
+    Mapea una máscara con valores (0, 1, 2, 3) a colores específicos:
+    - 0 -> Negro (0, 0, 0)
+    - 1 -> Rojo (255, 0, 0)
+    - 2 -> Verde (0, 255, 0)
+    - 3 -> Azul (0, 0, 255)
+
+    Args:
+        mask: Una matriz 2D numpy con valores 0, 1, 2, 3.
+
+    Returns:
+        Una imagen RGB con los colores mapeados.
+    """
+    # Crear una imagen RGB inicial
+    height, width = mask.shape
+    color_image = np.zeros((height, width, 3), dtype=np.uint8)
+
+    # Mapear los valores de la máscara a colores
+    if mask.max() == 3:
+        color_map = {
+            ind[0]: [0, 0, 0],       # Negro
+            ind[1]: [255, 0, 0],     # Rojo
+            ind[2]: [0, 255, 0],   # Verde
+            ind[3]: [0, 0, 255]      # Azul
+        }
+    else:
+        color_map = {
+            0: [255, 0, 0],     # Rojo
+            1: [0, 255, 0],     # Verde
+            2: [0, 0, 255]      # Azul
+        }
+
+    for value, color in color_map.items():
+        color_image[mask == value] = color
+    return color_image
+
+
+def cluster_phasor_plot_4_clusters(X, pred_y, cluster_type=1, colors=["k", "r", "lime", "b"]):
+    from phasorpy.plot import PhasorPlot
+    from matplotlib import pyplot
+    fig, ax = plt.subplots(figsize=(7, 7))
+    ax = pyplot.subplot(1, 1, 1)
+    if cluster_type == 1:
+        plot = PhasorPlot(ax=ax, allquadrants=True, title="Phasor plot")
+
+    p0 = np.where(pred_y == 0)
+    p1 = np.where(pred_y == 1)
+    p2 = np.where(pred_y == 2)
+    p3 = np.where(pred_y == 3)
+    ax.scatter(X[p0[0], 0], X[p0[0], 1], c=colors[0])
+    ax.scatter(X[p1[0], 0], X[p1[0], 1], c=colors[1])
+    ax.scatter(X[p2[0], 0], X[p2[0], 1], c=colors[2])
+    ax.scatter(X[p3[0], 0], X[p3[0], 1], c=colors[3])
