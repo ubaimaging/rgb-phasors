@@ -9,9 +9,11 @@ import pandas as pd
 import tifffile as tiff
 import os
 from matplotlib.colors import hsv_to_rgb
+import pandas as pd
+from natsort import natsorted
 
 
-def phasor(image_stack, harmonic=1, axis=0):
+def phasor(image_stack, harmonic=1):
     """
         This function computes the average intensity image, the G and S coordinates of the phasor.
     As well as the modulation and phase.
@@ -35,7 +37,7 @@ def phasor(image_stack, harmonic=1, axis=0):
     s /= -dc
     return dc, g, s
 
-def unnormalized_phasor(image_stack, harmonic=1, axis=0):
+def unnormalized_phasor(image_stack, harmonic=1):
 
     data = np.fft.fft(image_stack, axis=0, norm='ortho')
 
@@ -516,7 +518,6 @@ def construct_label_array_optimized(xt, xn, labels):
 
     # Asignar valores usando una comprensión de lista
     result = np.array([index_map.get(coord, 0) for coord in xt_tuples], dtype=labels.dtype)
-
     return result
 
 
@@ -880,7 +881,7 @@ def map_mask_to_colors(mask, ind=[0, 1, 2, 3]):
 def cluster_phasor_plot_4_clusters(X, pred_y, cluster_type=1, colors=["k", "r", "lime", "b"]):
     from phasorpy.plot import PhasorPlot
     from matplotlib import pyplot
-    fig, ax = plt.subplots(figsize=(7, 7))
+    fig, ax = plt.subplots(figsize=(6, 6))
     ax = pyplot.subplot(1, 1, 1)
     if cluster_type == 1:
         plot = PhasorPlot(ax=ax, allquadrants=True, title="Phasor plot")
@@ -893,3 +894,250 @@ def cluster_phasor_plot_4_clusters(X, pred_y, cluster_type=1, colors=["k", "r", 
     ax.scatter(X[p1[0], 0], X[p1[0], 1], c=colors[1])
     ax.scatter(X[p2[0], 0], X[p2[0], 1], c=colors[2])
     ax.scatter(X[p3[0], 0], X[p3[0], 1], c=colors[3])
+
+
+#################################################
+########## Segmentation functions ###############
+#################################################
+
+
+from skimage.filters import threshold_multiotsu
+from skimage.color import rgb2gray
+
+def apply_multiotsu_segmentation(image, classes=4):
+    """
+    Applies Multi-Otsu segmentation to an image.
+    Args:
+        image (numpy.ndarray): Input image, can be in color or grayscale.
+        classes (int): Number of classes for Multi-Otsu thresholding. Default is 4.
+
+    Returns:
+        numpy.ndarray: Segmented mask based on Multi-Otsu.
+    """
+    gray_image = rgb2gray(image) if image.ndim == 3 else image
+    gray_image = (gray_image * 255).astype(np.uint8)
+    thresholds = threshold_multiotsu(gray_image, classes=classes)
+    mask = np.digitize(gray_image, bins=thresholds)
+    return mask
+
+
+from sklearn.cluster import KMeans
+
+def apply_kmeans_segmentation(image, n_clusters=4, random_state=42):
+    """
+    Applies K-Means clustering segmentation to an image.
+
+    Args:
+        image (numpy.ndarray): Input image, must be in RGB or grayscale.
+        n_clusters (int): Number of clusters for K-Means. Default is 4.
+        random_state (int): Random state for reproducibility. Default is 42.
+
+    Returns:
+        numpy.ndarray: Segmented image with cluster labels.
+    """
+    normalized_image = image / 255.0
+    pixels = normalized_image.reshape(-1, normalized_image.shape[-1]) if normalized_image.ndim == 3 else normalized_image.reshape(-1, 1)
+    kmeans = KMeans(n_clusters=n_clusters, random_state=random_state)
+    labels = kmeans.fit_predict(pixels)
+    segmented_image = labels.reshape(image.shape[:2])
+    return segmented_image
+
+
+def segmentation_from_phasor_cluster(real, imag, n_clusters=4, random_state=42):
+    """
+    Segments data from phasor clusters using K-Means.
+
+    Args:
+        real (numpy.ndarray): Real component of the phasor data.
+        imag (numpy.ndarray): Imaginary component of the phasor data.
+        n_clusters (int): Number of clusters for K-Means. Default is 4.
+        random_state (int): Random state for reproducibility. Default is 42.
+
+    Returns:
+        numpy.ndarray: Segmentation mask with cluster labels.
+    """
+    # Combine real and imaginary components into a 2D array (Nx2)
+    x = np.asarray([real.flatten(), imag.flatten()]).transpose()
+    # Apply K-Means clustering
+    kmeans = KMeans(n_clusters=n_clusters, 
+                    random_state=random_state, n_init="auto").fit(x)
+    # Predict cluster labels for each data point
+    labels = kmeans.predict(x)
+    # Reshape the labels to match the original shape of the input
+    mask = labels.reshape(real.shape)
+    return mask
+
+
+def binarize_images(input_folder, output_folder, background_value):
+    """
+    Reads all .tif images from a folder, binarizes them, and saves the processed images 
+    in a specified output folder.
+    
+    Parameters:
+    - input_folder (str): Path to the folder containing .tif images.
+    - output_folder (str): Path to the folder where binarized images will be saved.
+    - background_value (int or float): The value considered as background.
+    
+    Output:
+    - None. The processed images are saved in the output folder.
+    """
+    # Check if the input folder exists
+    if not os.path.exists(input_folder):
+        print("The input folder does not exist.")
+        return
+    
+    # Create the output folder if it doesn't exist
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+        print(f"Output folder created: {output_folder}")
+    
+    # Get all .tif files in the input folder
+    tif_files = [f for f in os.listdir(input_folder) if f.endswith('.tif')]
+    
+    if not tif_files:
+        print("No .tif images found in the input folder.")
+        return
+    
+    for file in tif_files:
+        input_file_path = os.path.join(input_folder, file)
+        
+        # Read the image
+        image = tiff.imread(input_file_path)
+        
+        # Binarize the image: 0 where the pixel equals background_value, 255 otherwise
+        binary_image = np.where(image == background_value, 0, 255).astype(np.uint8)
+        
+        # Save the binarized image in the output folder
+        output_file_path = os.path.join(output_folder, f"{os.path.splitext(file)[0]}_binary.tif")
+        tiff.imwrite(output_file_path, binary_image)
+        print(f"Binarized image saved: {output_file_path}")
+
+
+def calculate_mask_areas_with_stats(main_folder):
+    """
+    Process subfolders, calculate mask areas, and add mean and std for each individual (every 10 masks)
+    and each subfolder.
+
+    Parameters:
+    main_folder (str): Path to the main folder containing subfolders with masks.
+
+    Returns:
+    pandas.DataFrame: DataFrame with percentage area and calculated stats.
+    """
+    results_dict = {}
+
+    # Iterate through each subfolder in the main folder
+    for subfolder in natsorted(os.listdir(main_folder)):
+        subfolder_path = os.path.join(main_folder, subfolder)
+
+        if os.path.isdir(subfolder_path):  # Check if it is a folder
+            # Get a sorted list of TIFF files in the subfolder
+            files = natsorted(
+                f for f in os.listdir(subfolder_path)
+                if f.endswith(".tif") or f.endswith(".tiff")
+            )
+
+            mask_areas = []
+
+            # Process each file in the subfolder
+            for file in files:
+                file_path = os.path.join(subfolder_path, file)
+                mask = tiff.imread(file_path)
+
+                # Validate mask contains only 0 and 255
+                if np.any((mask != 0) & (mask != 255)):
+                    print(f"Warning: The mask {file} in {subfolder} contains unexpected values.")
+                    continue
+
+                # Calculate percentage of tissue (255)
+                total_pixels = mask.size
+                tissue = np.sum(mask == 255)
+                tissue_percentage = (tissue / total_pixels) * 100
+
+                mask_areas.append(tissue_percentage)
+
+            # Store the tissue percentages for the current subfolder
+            results_dict[subfolder] = mask_areas
+
+    # Create a DataFrame from the results dictionary
+    df = pd.DataFrame.from_dict(results_dict, orient='index').transpose()
+
+    # Calculate stats for each subfolder
+    stats = {}
+    for col in df.columns:
+        values = df[col].dropna().to_numpy()
+
+        # Calculate stats for each individual (every 10 masks)
+        individual_means = []
+        individual_stds = []
+        for i in range(0, len(values), 10):
+            group = values[i:i + 10]
+            if len(group) > 0:
+                individual_means.append(np.mean(group))
+                individual_stds.append(np.std(group))
+
+        # Create new columns of the same length as the DataFrame
+        individual_mean_column = [np.nan] * len(df)
+        individual_std_column = [np.nan] * len(df)
+
+        # Assign the calculated means and stds to the appropriate positions
+        for idx, mean in enumerate(individual_means):
+            individual_mean_column[idx * 10] = mean
+        for idx, std in enumerate(individual_stds):
+            individual_std_column[idx * 10] = std
+
+        df[f"{col}_individual_mean"] = individual_mean_column
+        df[f"{col}_individual_std"] = individual_std_column
+
+        # Calculate overall stats for the subfolder
+        stats[col] = {
+            "mean": np.mean(values),
+            "std": np.std(values)
+        }
+
+    # Add overall stats to the DataFrame
+    for col, stat in stats.items():
+        df[f"{col}_overall_mean"] = [stat["mean"]] + [None] * (df.shape[0] - 1)
+        df[f"{col}_overall_std"] = [stat["std"]] + [None] * (df.shape[0] - 1)
+
+    return df
+
+
+def summarize_methods(csv_path):
+    """
+    Lee un archivo CSV con estadísticas de métodos y familias,
+    calcula los valores promedio generales y desviaciones estándar globales
+    para cada método.
+
+    Parámetros:
+    - csv_path (str): Ruta al archivo CSV generado previamente.
+
+    Retorno:
+    - DataFrame con valores promedio y desviación estándar global por método.
+    """
+    # Leer el archivo CSV
+    data = pd.read_csv(csv_path)
+
+    # Identificar las columnas de medias y desviaciones estándar
+    mean_columns = [col for col in data.columns if "mean" in col and "overall" not in col]
+    std_columns = [col for col in data.columns if "std" in col and "overall" not in col]
+
+    # Inicializar diccionario para los resultados
+    summary = {}
+
+    for mean_col, std_col in zip(mean_columns, std_columns):
+        method = mean_col.split("_")[0]  # Extraer el nombre del método
+        # Combinar medias y desviaciones estándar para el método
+        means = data[mean_col].dropna().to_numpy()
+        stds = data[std_col].dropna().to_numpy()
+
+        # Calcular promedios generales y std global
+        summary[method] = {
+            "Overall Mean": np.mean(means),
+            "Overall Std": np.mean(stds)
+        }
+
+    # Convertir a DataFrame
+    summary_df = pd.DataFrame(summary).T.reset_index()
+    summary_df.rename(columns={"index": "Method"}, inplace=True)
+    return summary_df

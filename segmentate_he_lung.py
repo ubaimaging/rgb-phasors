@@ -167,7 +167,7 @@ if part2:
         plt.show()
 
 # Part 2 Other kind of segmentation 
-part2 = True
+part2 = False
 if part2:
 
     # Read the images
@@ -175,90 +175,67 @@ if part2:
         "/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/B6ND/52-21B6ND05.tif")
     im2 = tifffile.imread(
         "/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/B6ND_inst/063-21B6ND_INS04.tif")
+    
+    im2 = tifffile.imread(
+        "/Users/schutyb/Documents/Projects/rgb-phasors/data/lung/mask/multiotsu/nd/multiotsu_46-21B6ND01.tif")
+    
+    plt.imshow(im2)
+    plt.show()
 
     # Kmeans
     km = False
     if km:
         from sklearn.cluster import KMeans
         im1 = im1 / 255
-        im2 = im2 / 255
-
         pixels1 = im1.reshape(-1, 3)  # Convertir a Nx3
-        kmeans1 = KMeans(n_clusters=2, random_state=42)
+        kmeans1 = KMeans(n_clusters=4, random_state=42)
         labels1 = kmeans1.fit_predict(pixels1)
         segmented_image1 = labels1.reshape(im1.shape[:2])
 
+        im2 = im2 / 255
         pixels2 = im2.reshape(-1, 3)  # Convertir a Nx3
-        kmeans2 = KMeans(n_clusters=2, random_state=42)
+        kmeans2 = KMeans(n_clusters=4, random_state=42)
         labels2 = kmeans2.fit_predict(pixels2)
         segmented_image2 = labels2.reshape(im1.shape[:2])
 
         # Plot
-        plt.figure()
-        plt.imshow(segmented_image1)
-        plt.title("Segmentación con K-Means")
-        plt.axis('off')
+        plotty = False
+        if plotty:
+            plt.figure()
+            plt.imshow(segmented_image1)
+            plt.title("Segmentación con K-Means")
+            plt.axis('off')
 
-        plt.figure()
-        plt.imshow(segmented_image2)
-        plt.title("Segmentación con K-Means")
-        plt.axis('off')
-        plt.show()
+            plt.figure()
+            plt.imshow(segmented_image2)
+            plt.title("Segmentación con K-Means")
+            plt.axis('off')
+            plt.show()
     
     # Otsu
     otsu = False
     if otsu:
-        from skimage.filters import threshold_otsu
+        from skimage.filters import threshold_multiotsu
         from skimage.color import rgb2gray
 
         gray_image1 = rgb2gray(im1)
-        otsu_threshold1 = threshold_otsu(gray_image1)
-        binary_image_otsu1 = gray_image1 > otsu_threshold1
+        gray_image1 = (gray_image1 * 255).astype(np.uint8)
+        thresholds1 = threshold_multiotsu(gray_image1, classes=4)
+        mask1 = np.digitize(gray_image1, bins=thresholds1)
 
         gray_image2 = rgb2gray(im2)
-        otsu_threshold2 = threshold_otsu(gray_image2)
-        binary_image_otsu2 = gray_image2 > otsu_threshold2
+        gray_image2 = (gray_image2 * 255).astype(np.uint8)
+        thresholds2 = threshold_multiotsu(gray_image2, classes=4)
+        mask2 = np.digitize(gray_image2, bins=thresholds2)
 
-        # Visualizar la imagen segmentada
-        plt.figure()
-        plt.imshow(binary_image_otsu1)
-        plt.title(f"Otsu (threshold={otsu_threshold1:.2f})")
-        plt.axis('off')
+        # Plot
+        plotty = False
+        if plotty:
+            plt.figure()
+            plt.imshow(mask1)
+            plt.axis('off')
 
-        plt.figure()
-        plt.imshow(binary_image_otsu2)
-        plt.title(f"Otsu (threshold={otsu_threshold2:.2f})")
-        plt.axis('off')
-        plt.show()
-
-    # Watershed
-    wat = True
-    if wat:
-        from skimage.segmentation import watershed
-        from skimage.feature import peak_local_max
-        from scipy.ndimage import distance_transform_edt, label
-        from skimage.color import rgb2gray
-
-        # Convertir la imagen a escala de grises
-        gray_image = rgb2gray(im1) * 255
-        gray_image = gray_image.astype(np.int64)
-
-        # Transformada de distancia
-        distance = distance_transform_edt(gray_image)
-        # distance = (distance * 255).astype(np.int64)
-
-        # Encontrar marcadores locales (picos locales)
-        local_maxi = peak_local_max(distance, footprint=np.ones((3, 3)), 
-                                    labels=gray_image, exclude_border=False)
-
-        # Etiquetar los marcadores
-        markers, _ = label(local_maxi)
-
-        # Aplicar Watershed
-        labels_watershed = watershed(-distance, markers, mask=gray_image)
-
-        # Visualizar la segmentación
-        plt.imshow(labels_watershed, cmap='nipy_spectral')
-        plt.title("Segmentación con Watershed")
-        plt.axis('off')
-        plt.show()
+            plt.figure()
+            plt.imshow(mask2)
+            plt.axis('off')
+            plt.show()
