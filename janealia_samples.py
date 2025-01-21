@@ -11,7 +11,6 @@ from phasorpy.color import CATEGORICAL
 from phasorpy.phasor import phasor_from_signal, phasor_filter, phasor_threshold
 import tifffile
 
-
  
 part1 = False 
 if part1:
@@ -78,50 +77,93 @@ if part1:
 
 # Spectral Unmixing Part
 part2 = True
-if part2: 
-    path = "/Users/schutyb/Documents/Projects/rgb-phasors/data/fluoresence/j_samples/epi/"
-    image = plt.imread(path + "janelia_sample_3channes_roi5.tif")
-    # image = plt.imread(path + "janelia_sample_3channes_roi2.tif")
-    
-    bgr = tools.rgb2bgr(image)
+if part2:
+    # Obtain the center of each components 
+    path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig5/data/"
 
-    avg, real, imag = phasor_from_signal(bgr, axis=0)
-    
-    bgr = [[0, 0, 1], [0, 1, 0], [1, 0, 0]]
-    _, gs, ss = phasor_from_signal(bgr, axis=0)
+    blue = plt.imread(path + "janelia_sample_dapi_roi1.tif")
+    green = plt.imread(path + "janelia_sample_488_roi2.tif")
+    red = plt.imread(path + "janelia_sample_555_roi1.tif")
 
-    # filter
-    real, imag, = phasor_filter(real, imag)
-    # threshold
-    avg, real, imag = phasor_threshold(avg, real, imag, mean_min=5)
+    comp_plot = True
+    if comp_plot:
+        plt.figure(1)
+        plt.imshow(blue)
+        plt.figure(2)
+        plt.imshow(green)
+        plt.figure(3)
+        plt.imshow(red)
+        # plt.show()
 
-    ncomp = 3
-    vecB = np.stack((real, imag, np.ones(real.shape)), axis=-1)  # Dimensions: (465, 465, 3)
-    # Matrix A with dimensions (3, 3)
-    matA = np.array([gs, ss, [1, 1, 1]])
-    # Flatten the first two dimensions of vecB to apply lstsq at once
-    vecB_flat = vecB.reshape(-1, 3)
-    # Apply lstsq to each row of vecB_flat with respect to matA
-    frac_flat, _, _, _ = np.linalg.lstsq(matA, vecB_flat.T, rcond=None)
-    # Reshape the result back to its original form
-    frac = frac_flat.T.reshape(real.shape[0], real.shape[1], 3)
+    comp_plot_phasor = True
+    if comp_plot_phasor:
+        avgb, realb, imagb = phasor_from_signal(tools.rgb2bgr(blue)[0:, 500:700, 700:1100], axis=0)
+        plot = PhasorPlot(allquadrants=True, title='Phasor plot blue')
+        plot.hist2d(realb.flatten(), imagb.flatten(), cmap="RdYlGn_r")
 
-    # plotear las tres imagenes por separado
-    frac_rgb = tools.rgb2bgr(frac)
-    plt.figure()
-    plt.imshow(frac_rgb[0], cmap="Blues")
-    plt.title("Blue channel")
+        avgg, realg, imagg = phasor_from_signal(tools.rgb2bgr(green)[0:, 400:1400, 1000:1600], axis=0)
+        plot = PhasorPlot(allquadrants=True, title='Phasor plot green')
+        plot.hist2d(realg.flatten(), imagg.flatten(), cmap="RdYlGn_r")
 
-    plt.figure()
-    plt.imshow(frac_rgb[1], cmap="Greens")
-    plt.title("Green channel")
+        avgr, realr, imagr = phasor_from_signal(tools.rgb2bgr(red)[0:, 600:1000, 1200:1400], axis=0)
+        plot = PhasorPlot(allquadrants=True, title='Phasor plot red')
+        plot.hist2d(realr.flatten(), imagr.flatten(), cmap="RdYlGn_r")
+        # plt.show()
 
-    plt.figure()
-    plt.imshow(frac_rgb[2], cmap="Reds")
-    plt.title("Red channel")
+    sp_unmixing = True
+    if sp_unmixing:
+        # image = plt.imread(path + "janelia_sample_3channes_roi5.tif")
+        image = plt.imread(path + "deconvolved_janelia_sample_3channes_roi5.tif")
+        # image = plt.imread(path + "janelia_sample_3channes_roi2.tif")
 
-    # Recontruir la de pseudocolor
-    plt.figure()
-    plt.imshow(frac)
 
-    plt.show()
+        plt.figure()
+        plt.imshow(image)
+
+        img = tools.rgb2bgr(image)
+        avg, real, imag = phasor_from_signal(img, axis=0)
+
+        plot = PhasorPlot(allquadrants=True, title='Phasor')
+        plot.hist2d(real.flatten(), imag.flatten(), cmap="RdYlGn_r")
+        
+
+        bgr = [[0, 0, 1], [0, 1, 0], [1, 0, 0]]
+        # _, gs, ss = phasor_from_signal(bgr, axis=0)
+
+        gs = np.array([-0.5, -0.35, 0.45])
+        ss = np.array([-0.85, 0.78, 0.32])
+
+        # filter
+        real, imag, = phasor_filter(real, imag)
+        # threshold
+        avg, real, imag = phasor_threshold(avg, real, imag, mean_min=5)
+
+        ncomp = 3
+        vecB = np.stack((real, imag, np.ones(real.shape)), axis=-1)  # Dimensions: (465, 465, 3)
+        # Matrix A with dimensions (3, 3)
+        matA = np.array([gs, ss, [1, 1, 1]])
+        # Flatten the first two dimensions of vecB to apply lstsq at once
+        vecB_flat = vecB.reshape(-1, 3)
+        # Apply lstsq to each row of vecB_flat with respect to matA
+        frac_flat, _, _, _ = np.linalg.lstsq(matA, vecB_flat.T, rcond=None)
+        # Reshape the result back to its original form
+        frac = frac_flat.T.reshape(real.shape[0], real.shape[1], 3)
+
+        # plotear las tres imagenes por separado
+        frac_rgb = tools.rgb2bgr(frac)
+        plt.figure()
+        plt.imshow(frac_rgb[0], cmap="Blues")
+        plt.title("Blue channel")
+
+        plt.figure()
+        plt.imshow(frac_rgb[1], cmap="Greens")
+        plt.title("Green channel")
+
+        plt.figure()
+        plt.imshow(frac_rgb[2], cmap="Reds")
+        plt.title("Red channel")
+
+        # Recontruir la de pseudocolor
+        plt.figure()
+        plt.imshow(frac)
+        plt.show()

@@ -8,7 +8,7 @@ import tifffile
 
 
 # Part 1 is for to RGB imaging
-part1 = True
+part1 = False
 if part1:
     # Open the RGB images 
     imm = plt.imread("/Users/schutyb/Documents/Projects/rgb-phasors/data/autofluorescencia/nev-mel/18852_10x_r1.tif")
@@ -159,20 +159,12 @@ if part1:
 part2 = True
 if part2:
     imn = tifffile.imread(
-        "/Users/schutyb/Documents/Projects/rgb-phasors/data/autofluorescencia/hsi-nev-mel/sp_16556_r2.lsm")
+        "/Users/schutyb/Documents/Projects/rgb-phasors/data/autofluorescencia/sp/sp_16556_r2.lsm")
     imm = tifffile.imread(
-        "/Users/schutyb/Documents/Projects/rgb-phasors/data/autofluorescencia/hsi-nev-mel/sp_18852_r2.lsm")
+        "/Users/schutyb/Documents/Projects/rgb-phasors/data/autofluorescencia/sp/sp_18852_r1.lsm")
     
     dcm, gm, sm,  = tools.phasor(imm)
     dcn, gn, sn,  = tools.phasor(imn)
-
-        # Threshold
-    thresholdm = 10
-    thresholdn = 10
-    gm = numpy.where(dcm > thresholdm, gm, numpy.NaN)
-    sm = numpy.where(dcm > thresholdm, sm, numpy.NaN)
-    gn = numpy.where(dcn > thresholdn, gn, numpy.NaN)
-    sn = numpy.where(dcn > thresholdn, sn, numpy.NaN)
 
     dcm = numpy.rot90(dcm, k=-1)[:850, :970]
     gm = numpy.rot90(gm, k=-1)[:850, :970]
@@ -182,10 +174,17 @@ if part2:
     sn = numpy.rot90(sn)[:850, :970]
 
     # median filter
-    gm = tools.median_filter(gm, 3)
-    sm = tools.median_filter(sm, 3)
-    gn = tools.median_filter(gn, 3)
-    sn = tools.median_filter(sn, 3)
+    n = 3
+    gm = tools.median_filter(gm, n)
+    sm = tools.median_filter(sm, n)
+    gn = tools.median_filter(gn, n)
+    sn = tools.median_filter(sn, n)
+
+    t = 5
+    gm = numpy.where(dcm > t, gm, numpy.NaN)
+    sm = numpy.where(dcm > t, sm, numpy.NaN)
+    gn = numpy.where(dcn > t, gn, numpy.NaN)
+    sn = numpy.where(dcn > t, sn, numpy.NaN)
 
     # PLOTs
     # intensity
@@ -198,12 +197,12 @@ if part2:
 
     # Phasor Plot
     # Add 3 cursors and create pseudocolor
-    cursors_real = [0.0, -0.23, -0.39]
-    cursors_imag = [0.6, 0.39, 0.12]
-    r = 0.17 # radius
+    cursors_real = [-0.05, -0.27, -0.41]
+    cursors_imag = [0.55, 0.34, 0.06]
+    r = 0.165 # radius
 
     plot1 = PhasorPlot(allquadrants=True, title='Phasor plot melanoma')
-    plot1.hist2d(gm.flatten(), sm.flatten(), cmap="RdYlGn_r")
+    plot1.hist2d(gm, sm, cmap="RdYlGn_r")
     # Plot cursors Blue, Green, Red
     plot1.cursor(
         cursors_real[0],
@@ -230,7 +229,7 @@ if part2:
     )
 
     plot2 = PhasorPlot(allquadrants=True, title='Phasor plot nevus')
-    plot2.hist2d(gn.flatten(), sn.flatten(), cmap="RdYlGn_r")
+    plot2.hist2d(gn, sn, cmap="RdYlGn_r")
     # Plot cursors Blue, Green, Red
     plot2.cursor(
         cursors_real[0],
@@ -274,4 +273,3 @@ if part2:
     plt.imshow(auxn)
     plt.title("Pseudocolor nevus")
     plt.show()
-
