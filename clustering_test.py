@@ -9,7 +9,7 @@ from sklearn.cluster import (
     KMeans, AgglomerativeClustering, SpectralClustering
 )
 
-from tools import  construct_label_array_optimized, map_values_to_rgb
+from tools import construct_label_array_optimized, map_values_to_rgb
 
 
 def plot_pseudocolor_im(x, xt):

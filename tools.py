@@ -1141,3 +1141,37 @@ def summarize_methods(csv_path):
     summary_df = pd.DataFrame(summary).T.reset_index()
     summary_df.rename(columns={"index": "Method"}, inplace=True)
     return summary_df
+
+
+def phasor_center_of_mass(g, s, avg):
+    """
+    Calcula el centro de masa del phasor plot usando G (real), S (imag) y un mapa de promedio/intensidad.
+
+    Parámetros:
+    - g: np.ndarray (N, M), coordenadas G (parte real)
+    - s: np.ndarray (N, M), coordenadas S (parte imaginaria)
+    - avg: np.ndarray (N, M), intensidad promedio (peso)
+
+    Retorna:
+    - (g_com, s_com): tupla con las coordenadas del centro de masa
+    """
+    total_weight = np.sum(avg)
+    g_com = np.sum(g * avg) / total_weight
+    s_com = np.sum(s * avg) / total_weight
+    return g_com, s_com
+
+
+def umbralizar_por_rango(canal, min_val, max_val):
+    """
+    Máscara con valores válidos y np.nan donde no se cumple el rango.
+    """
+    mask = (canal >= min_val) & (canal <= max_val)
+    salida = np.where(mask, canal, np.nan)
+    return salida.astype(np.float32)
+
+
+def rgb_to_grayscale(img_rgb):
+    """
+    Convierte imagen RGB a escala de grises usando luminancia estándar.
+    """
+    return np.dot(img_rgb[...,:3], [0.2989, 0.5870, 0.1140])
