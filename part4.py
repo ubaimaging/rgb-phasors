@@ -30,7 +30,7 @@ from tools4 import (
 apply_plot_style()
 
 # Set to True to save figures
-savefig = False
+savefig = True
 formatfig = 'jpg'  # 'pdf', 'png', 'jpg'
 
 # import data from local file
@@ -83,7 +83,7 @@ if not print:
 # Plot the phasor components
 # plot histograms for each channel and print the mean values
 # values: b=20, g=5, r=25
-plotty = True
+plotty = False
 if plotty:
     # Create figure with 2 rows and 3 columns
     fig, axes = plt.subplots(2, 3, figsize=(12, 8))
@@ -145,8 +145,8 @@ if plotty:
 # --- Part 2 Apply the phasor unmixing to the RGB experimental image ---
 # --- .............................................................. ---
 
-sample1 = False  #single cell image configuration
-sample2 = False  #single cell image configuration
+sample1 = False  # single cell image configuration
+sample2 = False  # single cell image configuration
 if sample1:
     image = plt.imread(path + "sample1.tif")[150:1800, 600:2050]
     threshold = [5, 120, 5, 100, 5, 130]
