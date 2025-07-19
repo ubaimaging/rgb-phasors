@@ -5,7 +5,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from skimage.filters import threshold_otsu
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from phasorpy.plot import PhasorPlot
 from phasorpy.color import CATEGORICAL
@@ -21,12 +21,17 @@ from tools4 import (
     apply_unmixing_to_rgb,
     increase_brightness,
     photon_fraction_maps,
-    plot_photon_unmixing
+    plot_photon_unmixing,
+    save_figure
     )
 
 
 # Apply the plotting style
 apply_plot_style()
+
+# Set to True to save figures
+savefig = False
+formatfig = 'jpg'  # 'pdf', 'png', 'jpg'
 
 # import data from local file
 path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig5/data/"
@@ -78,7 +83,7 @@ if not print:
 # Plot the phasor components
 # plot histograms for each channel and print the mean values
 # values: b=20, g=5, r=25
-plotty = False
+plotty = True
 if plotty:
     # Create figure with 2 rows and 3 columns
     fig, axes = plt.subplots(2, 3, figsize=(12, 8))
@@ -99,20 +104,24 @@ if plotty:
     # --- Bottom row: Histograms ---
     hist_b, bins_b = np.histogram(avgb, bins=256, range=(0, 255))
     axes[1, 0].plot(bins_b[:-1], hist_b, color='blue')
+    axes[1, 0].set_yscale('log')
     axes[1, 0].set_title("Histogram (Blue)")
     axes[1, 0].set_xlim(0, 255)
 
     hist_g, bins_g = np.histogram(avgg, bins=256, range=(0, 255))
     axes[1, 1].plot(bins_g[:-1], hist_g, color='green')
+    axes[1, 1].set_yscale('log')
     axes[1, 1].set_title("Histogram (Green)")
     axes[1, 1].set_xlim(0, 255)
 
     hist_r, bins_r = np.histogram(avgr, bins=256, range=(0, 255))
     axes[1, 2].plot(bins_r[:-1], hist_r, color='red')
+    axes[1, 2].set_yscale('log')
     axes[1, 2].set_title("Histogram (Red)")
     axes[1, 2].set_xlim(0, 255)
 
     plt.tight_layout()
+    if savefig: save_figure(fig, path + "components_and_histograms", format=formatfig)
 
     plot = PhasorPlot(allquadrants=True, title='Components Phasor Plot')
     plot.hist2d(realb.flatten(), imagb.flatten(), cmap="RdYlGn_r")
@@ -127,31 +136,36 @@ if plotty:
     plt.plot(realr_cm, imagr_cm, color='red', markersize=9, marker='*', 
                 linestyle='None', label='Red component')
     plt.legend()
+    if savefig: save_figure(plot.fig, path + "components_phasor_plot", format=formatfig)
 
-    plt.show()
+    # plt.show()
 
 
 # --- .............................................................. ---
 # --- Part 2 Apply the phasor unmixing to the RGB experimental image ---
 # --- .............................................................. ---
 
-# single cell image configuration
-#image = plt.imread(path + "roi14.tif")[350:2000, 50:1600]
-#threshold = [0, 130, 1, 80, 1, 100]
-#rang = np.array([[0, 0.7], [0, 1], [0.2, 0.5]])
-#mean_threshold = 2
+sample1 = False  #single cell image configuration
+sample2 = False  #single cell image configuration
+if sample1:
+    image = plt.imread(path + "sample1.tif")[150:1800, 600:2050]
+    threshold = [5, 120, 5, 100, 5, 130]
+    rang = np.array([[0.15, 0.95], [0, 0.8], [0.03, 0.4]])
+    mean_threshold = 10 
 
-# paper image configuration
-image = plt.imread(path + "roi3.tif")
-threshold = [0, 100, 1, 80, 1, 95]
-rang = np.array([[0.3, 0.8], [0.05, 1], [0.2, 0.5]])
-mean_threshold = 5
+elif sample2:
+    image = plt.imread(path + "sample2.tif")[350:2000, 50:1600]
+    threshold = [0, 130, 1, 80, 1, 100]
+    rang = np.array([[0, 0.7], [0, 1], [0.2, 0.5]])
+    mean_threshold = 2
 
-# Otras imagenes
-#image = plt.imread(path + "extra01.tif")[150:1800, 600:2050]
-#threshold = [5, 120, 5, 100, 5, 130]
-#rang = np.array([[0.15, 0.95], [0, 0.8], [0.03, 0.4]])
-#mean_threshold = 10
+else:
+    # paper image configuration
+    image = plt.imread(path + "sample3.tif")
+    threshold = [0, 100, 1, 80, 1, 95]
+    rang = np.array([[0.3, 0.8], [0.05, 1], [0.2, 0.5]])
+    mean_threshold = 5
+    
 
 # Build the thresholded RGB image
 rgb_composed = build_thresholded_rgb(image, thresholds=threshold, plotty=False)
@@ -181,20 +195,26 @@ plotty = True
 if plotty:
 
     # Plot the original RGB image
-    plt.figure()
+    fig = plt.figure()
     plt.imshow(image, interpolation="nearest")
     plt.title("Original RGB Image")
     plt.axis("off") 
     plt.tight_layout()
+    if savefig: save_figure(fig, path + "original_image", format=formatfig)
 
     # Plot the intensity image
     # This shows the sum of the RGB channels as a grayscale image
-    plt.figure()
-    plt.imshow(np.sum(image, axis=2), cmap="gray", interpolation="nearest")
-    plt.title("Intensity image")
-    plt.colorbar(label="Photon count")
-    plt.axis("off") 
+    fig, ax = plt.subplots()
+    im = ax.imshow(np.sum(image, axis=2), cmap="gray", interpolation="nearest")
+    ax.set_title("Intensity image")
+    ax.axis("off")
+    # Add a colorbar to the intensity image
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cbar = plt.colorbar(im, cax=cax)
+    cbar.set_label("Photon count")
     plt.tight_layout()
+    if savefig: save_figure(fig, path + "intensity_image", format=formatfig)
 
     # Figure Phasor Plot
     plot = PhasorPlot(allquadrants=True, title='Phasor plot of the image')
@@ -207,6 +227,8 @@ if plotty:
                 linestyle='None', label='Red channel')
     plt.legend()
     plt.tight_layout()
+    if savefig: save_figure(plot.fig, path + "phasor_plot", format=formatfig)
+
 
     # Plot Histograms
     fig, axs = plt.subplots(2, 1, figsize=(8, 6))
@@ -236,15 +258,20 @@ if plotty:
     axs[1].set_xlim(0, 1.2)
     axs[1].legend()
     plt.tight_layout()
+    if savefig: save_figure(fig, path + "histograms", format=formatfig)
+
 
     # Plot the photon unmixing results
-    plot_photon_unmixing(fracr, fracg, fracb, R_photons, G_photons, B_photons)
+    fig = plot_photon_unmixing(fracr, fracg, fracb, R_photons, G_photons, B_photons)
+    if savefig: save_figure(fig, path + "photon_unmixing", format=formatfig)
+
 
     # Plot the unmixed RGB image
-    plt.figure()
+    fig = plt.figure()
     plt.imshow(rgb_adjusted, interpolation="nearest")
     plt.title("Unmixed RGB Image")
     plt.axis("off")
     plt.tight_layout()
+    if savefig: save_figure(fig, path + "unmixed_image", format=formatfig)
 
     plt.show()

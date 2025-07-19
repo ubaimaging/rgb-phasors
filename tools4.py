@@ -27,6 +27,12 @@ def apply_plot_style():
         'figure.dpi': 150
     })
 
+
+def save_figure(fig, name, format='pdf'):
+    fig.savefig(f"{name}.{format}", bbox_inches='tight')
+    plt.close(fig)
+
+
 def build_thresholded_rgb(rgb, thresholds=None, plotty=False):
     """
     Applies per-channel thresholding (manual or Otsu), optionally plots diagnostics,
@@ -276,6 +282,13 @@ def photon_fraction_maps(rgb_image, R_frac, G_frac, B_frac):
 
 def plot_photon_unmixing(R_frac, G_frac, B_frac, R_photons, G_photons, B_photons):
 
+    """    Plot the photon fraction maps and their products."
+    Parameters:
+        R_frac, G_frac, B_frac: Fraction maps for each channel (H, W).
+        R_photons, G_photons, B_photons: Photon maps for             
+        each channel (H, W).
+    """
+
     # Replace NaNs with 0
     R_frac = np.nan_to_num(R_frac, nan=0.0)
     G_frac = np.nan_to_num(G_frac, nan=0.0)
@@ -329,4 +342,5 @@ def plot_photon_unmixing(R_frac, G_frac, B_frac, R_photons, G_photons, B_photons
         location='left', label="Photon Estimate"
     )
     plt.tight_layout()
+    return fig
 
