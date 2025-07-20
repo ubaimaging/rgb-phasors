@@ -12,16 +12,16 @@ def apply_plot_style():
     before any plots are created
     """
     plt.rcParams.update({
-        'font.size': 10,
+        'font.size': 14,
         'font.family': 'sans-serif',
         'font.sans-serif': ['Arial'],
-        'axes.labelsize': 11,
+        'axes.labelsize': 14,
         'axes.labelweight': 'bold',
-        'axes.titlesize': 12,
-        'axes.linewidth': 1.0,
-        'xtick.labelsize': 9,
-        'ytick.labelsize': 9,
-        'legend.fontsize': 9,
+        'axes.titlesize': 16,
+        'axes.linewidth': 1.5,
+        'xtick.labelsize': 12,
+        'ytick.labelsize': 12,
+        'legend.fontsize': 12,
         'legend.frameon': False,
         'savefig.dpi': 600,
         'figure.dpi': 150
@@ -341,6 +341,21 @@ def plot_photon_unmixing(R_frac, G_frac, B_frac, R_photons, G_photons, B_photons
         orientation='vertical', fraction=0.02, pad=0.08,
         location='left', label="Photon Estimate"
     )
-    plt.tight_layout()
+    #plt.tight_layout()
     return fig
 
+def draw_dashed_line_on_figures(fig, points, color='white', linestyle='--', linewidth=1.5):
+    """
+    Draws a dashed line over a list of matplotlib figures using the provided points.
+    
+    Parameters:
+    - figures: list of matplotlib.figure.Figure objects
+    - points: tuple of two (x, y) coordinates: (start, end)
+    - color: line color (default: 'white')
+    - linestyle: line style (default: dashed '--')
+    - linewidth: line width (default: 1.5)
+    """
+    start, end = points
+    ax = fig.axes[0]  # Assumes there's one axes per fig
+    ax.plot([start[0], end[0]], [start[1], end[1]],
+            color=color, linestyle=linestyle, linewidth=linewidth)
