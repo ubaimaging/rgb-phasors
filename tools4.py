@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+
 from skimage.filters import threshold_otsu
+from skimage.measure import profile_line
 
 
 def apply_plot_style():
@@ -12,19 +14,19 @@ def apply_plot_style():
     before any plots are created
     """
     plt.rcParams.update({
-        'font.size': 14,
+        'font.size': 12,
         'font.family': 'sans-serif',
         'font.sans-serif': ['Arial'],
-        'axes.labelsize': 14,
+        'axes.labelsize': 12,
         'axes.labelweight': 'bold',
         'axes.titlesize': 16,
         'axes.linewidth': 1.5,
-        'xtick.labelsize': 12,
-        'ytick.labelsize': 12,
-        'legend.fontsize': 12,
+        'xtick.labelsize': 10,
+        'ytick.labelsize': 10,
+        'legend.fontsize': 10,
         'legend.frameon': False,
         'savefig.dpi': 600,
-        'figure.dpi': 150
+        'figure.dpi': 150,
     })
 
 
@@ -359,3 +361,45 @@ def draw_dashed_line_on_figures(fig, points, color='white', linestyle='--', line
     ax = fig.axes[0]  # Assumes there's one axes per fig
     ax.plot([start[0], end[0]], [start[1], end[1]],
             color=color, linestyle=linestyle, linewidth=linewidth)
+    
+
+def create_combined_profile_plot(original_img, unmixed_img, start_point, end_point):
+    """
+    Creates a single plot showing the RGB intensity profiles of original and unmixed images
+    along a line defined by two points.
+
+    Parameters:
+    - original_img: np.ndarray (H, W, 3), RGB image in uint8 (0–255)
+    - unmixed_img: np.ndarray (H, W, 3), RGB image in float (0–1), possibly with NaNs
+    - start_point: tuple (x1, y1), starting point of the line
+    - end_point: tuple (x2, y2), ending point of the line
+
+    Returns:
+    - fig: matplotlib.figure.Figure object with a single Axes
+    """
+    # Clean unmixed image: remove NaNs and scale to 0–255
+    unmixed_clean = np.nan_to_num(unmixed_img, nan=0.0)
+    unmixed_scaled = np.clip(unmixed_clean * 255, 0, 255).astype(np.uint8)
+
+    # Extract profiles for each channel
+    profiles_orig = [profile_line(original_img[:, :, c], start_point, end_point) for c in range(3)]
+    profiles_unmix = [profile_line(unmixed_scaled[:, :, c], start_point, end_point) for c in range(3)]
+
+    # Plot configuration
+    colors = ['red', 'green', 'blue']
+    labels = ['Red', 'Green', 'Blue']
+
+    # Create figure and single axes
+    fig, ax = plt.subplots(figsize=(6, 5))
+
+    for i in range(3):
+        # ax.plot(profiles_orig[i], color=colors[i], label=f"Original")
+        ax.plot(profiles_unmix[i], color=colors[i], label=f"{labels[i]}")
+
+    ax.set_title("Intensity Profiles Along Line")
+    ax.set_xlabel("Distance")
+    ax.set_ylabel("Intensity")
+    ax.legend(loc='upper right')
+    fig.tight_layout()
+    
+    return fig

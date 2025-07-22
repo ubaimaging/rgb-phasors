@@ -23,7 +23,8 @@ from tools4 import (
     photon_fraction_maps,
     plot_photon_unmixing,
     save_figure,
-    draw_dashed_line_on_figures
+    draw_dashed_line_on_figures,
+    create_combined_profile_plot
     )
 
 
@@ -188,7 +189,7 @@ fracg = threshold_by_range(frac[1], rang[1][0], rang[1][1])
 fracr = threshold_by_range(frac[2], rang[2][0], rang[2][1])
 
 rgb_unmixed = apply_unmixing_to_rgb(image, fracr, fracg, fracb)
-rgb_adjusted = increase_brightness(rgb_unmixed, factor=2) # For plot version
+rgb_adjusted = increase_brightness(rgb_unmixed, factor=2)
 
 R_photons, G_photons, B_photons = photon_fraction_maps(image, fracr, fracg, fracb)
 
@@ -278,13 +279,13 @@ if plotty:
 # --- Part 3 Create Paper Figure ---
 # --- .......................... ---
 
-create_paper_figure = False
+create_paper_figure = True
 if create_paper_figure:
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
     from PIL import Image
 
     # Figure 1 Original RGB Image
-    fig1 = plt.figure()
+    fig1 = plt.figure(figsize=(6, 6))
     plt.imshow(image, interpolation="nearest")
     plt.title("Original RGB Image")
     plt.axis("off") 
@@ -296,7 +297,8 @@ if create_paper_figure:
     start_point = (940, 1337)
     end_point = (1672, 1634)
     points = (start_point, end_point)
-    draw_dashed_line_on_figures(fig1, points, color='white', linestyle='--', linewidth=1.5)
+
+    # draw_dashed_line_on_figures(fig1, points, color='white', linestyle='--', linewidth=1.5)
 
     # Figure 2 Phasor Plot
     plot = PhasorPlot(allquadrants=True, title='Phasor plot of the image')
@@ -312,31 +314,35 @@ if create_paper_figure:
     plt.tight_layout()
 
     # Figure 6 Histograms
-    fig6, ax6 = plt.subplots()
-    ax6.hist(fracb.flatten()[fracb.flatten() != 0],
+    fig3, ax3 = plt.subplots(figsize=(8, 6))
+    ax3.hist(fracb.flatten()[fracb.flatten() != 0],
             bins=256, color='blue', alpha=0.5, label='Blue channel', log=True)
-    ax6.hist(fracg.flatten()[fracg.flatten() != 0],
+    ax3.hist(fracg.flatten()[fracg.flatten() != 0],
             bins=256, color='green', alpha=0.5, label='Green channel', log=True)
-    ax6.hist(fracr.flatten()[fracr.flatten() != 0],
+    ax3.hist(fracr.flatten()[fracr.flatten() != 0],
             bins=256, color='red', alpha=0.5, label='Red channel', log=True)
-    ax6.set_title("Thresholded fractions histogram")
-    ax6.set_xlabel("Fraction value")
-    ax6.set_ylabel("Frequency")
-    ax6.set_xlim(0, 1.2)
-    ax6.legend()
+    ax3.set_title("Thresholded fractions histogram")
+    ax3.set_xlabel("Fraction value")
+    ax3.set_ylabel("Frequency")
+    ax3.set_xlim(0, 1.2)
+    ax3.legend()
     plt.tight_layout()
 
-    # Figure 7 Unmixed RGB Image
-    fig7 = plt.figure()
+    fig11 = create_combined_profile_plot(image, rgb_unmixed, start_point, end_point)
+    
+    # Figure 10 Unmixed RGB Image
+    fig10 = plt.figure(figsize=(6, 6))
     plt.imshow(rgb_adjusted, interpolation="nearest")
     plt.title("Unmixed RGB Image")
     plt.axis("off")
     plt.tight_layout()
 
-    draw_dashed_line_on_figures(fig7, points, color='white', linestyle='--', linewidth=1.5)
+    draw_dashed_line_on_figures(fig10, points, color='white', 
+                                linestyle='--', linewidth=1.5)
+    
+    #draw_dashed_line_on_figures(fig10, points, color='white', linestyle='--', linewidth=1.5)
 
-
-    # Figure 3, 4, 5, 8, 9 and 10 Photon Estimates
+    # Figure 4, 5, 6, 7, 8, 9 Photon Estimates
 
     # --- Reemplazar NaNs por 0 ---
     R_frac = np.nan_to_num(fracr, nan=0.0)
@@ -351,7 +357,7 @@ if create_paper_figure:
     vmax_prod = np.max([R_photons, G_photons, B_photons])
 
     def plot_image_only(img, title, vmin, vmax, cmap='inferno'):
-        fig, ax = plt.subplots(figsize=(5, 4))
+        fig, ax = plt.subplots(figsize=(6, 6))
         ax.imshow(img, cmap=cmap, vmin=vmin, vmax=vmax)
         ax.set_title(title)
         ax.axis("off")
@@ -359,15 +365,15 @@ if create_paper_figure:
         return fig
 
     # --- Crear figuras de fracciones ---
-    fig3 = plot_image_only(R_frac, "Fractions red", vmin=0, vmax=vmax_frac)
-    fig4 = plot_image_only(G_frac, "Fractions green", vmin=0, vmax=vmax_frac)
-    fig5 = plot_image_only(B_frac, "Fractions blue", vmin=0, vmax=vmax_frac)
+    fig4 = plot_image_only(R_frac, "Fractions red", vmin=0, vmax=vmax_frac)
+    fig5 = plot_image_only(G_frac, "Fractions green", vmin=0, vmax=vmax_frac)
+    fig6 = plot_image_only(B_frac, "Fractions blue", vmin=0, vmax=vmax_frac)
 
 
     # --- Crear figuras de fotones ---
-    fig8 = plot_image_only(R_photons, "Photons red", vmin=0, vmax=vmax_prod)
-    fig9 = plot_image_only(G_photons, "Photons green", vmin=0, vmax=vmax_prod)
-    fig10 = plot_image_only(B_photons, "Photons blue", vmin=0, vmax=vmax_prod)
+    fig7 = plot_image_only(R_photons, "Photons red", vmin=0, vmax=vmax_prod)
+    fig8 = plot_image_only(G_photons, "Photons green", vmin=0, vmax=vmax_prod)
+    fig9 = plot_image_only(B_photons, "Photons blue", vmin=0, vmax=vmax_prod)
 
     # --- Convertir figura a imagen ---
     def fig_to_img_array(fig):
@@ -397,8 +403,7 @@ if create_paper_figure:
         return padded
 
     # --- Convertir todas las figuras a arrays ---
-    figs = [fig1, fig2, fig3, fig4, fig5,
-            fig6, fig7, fig8, fig9, fig10]
+    figs = [fig1, fig2, fig3, fig4, fig5, fig6, fig7, fig8, fig9, fig10, fig11]
     images = [fig_to_img_array(f) for f in figs]
 
     # --- Redimensionar todas al mismo ancho manteniendo aspecto ---
@@ -411,13 +416,46 @@ if create_paper_figure:
     # --- Aplicar padding para unificar altura ---
     images_padded = [pad_to_height(im, target_height) for im in images_resized]
 
-    # --- Crear figura final con 2 filas y 6 columnas ---
-    fig_final, axs = plt.subplots(2, 5, figsize=(24, 9))
-    for i, ax in enumerate(axs.flat):
+    # --- Crear figura final con subplots ---
+    import matplotlib.gridspec as gridspec
+
+    fig_final = plt.figure(figsize=(18, 12))
+    gs = gridspec.GridSpec(4, 3, height_ratios=[1, 1, 1, 1])
+
+    # Fila 1: fig1, fig2, fig3
+    for i in range(3):
+        ax = fig_final.add_subplot(gs[0, i])
         ax.imshow(images_padded[i])
         ax.axis("off")
         ax.text(-0.05, 1.05, chr(65 + i), transform=ax.transAxes,
                 fontsize=14, fontweight='bold', va='top', ha='left')
+
+    # Fila 2: fig4, fig5, fig6
+    for i in range(3, 6):
+        ax = fig_final.add_subplot(gs[1, i - 3])
+        ax.imshow(images_padded[i])
+        ax.axis("off")
+        ax.text(-0.05, 1.05, chr(65 + i), transform=ax.transAxes,
+                fontsize=14, fontweight='bold', va='top', ha='left')
+
+    # Fila 3: fig7, fig8, fig9
+    for i in range(6, 9):
+        ax = fig_final.add_subplot(gs[2, i - 6])
+        ax.imshow(images_padded[i])
+        ax.axis("off")
+        ax.text(-0.05, 1.05, chr(65 + i), transform=ax.transAxes,
+                fontsize=14, fontweight='bold', va='top', ha='left')
+
+    # Fila 4: fig10, fig11 (fig11 ocupa dos columnas)
+    ax10 = fig_final.add_subplot(gs[3, 0])
+    ax10.imshow(images_padded[9])
+    ax10.axis("off")
+    ax10.text(-0.05, 1.05, "J", transform=ax10.transAxes, va='top', ha='left')
+
+    ax11 = fig_final.add_subplot(gs[3, 1])
+    ax11.imshow(images_padded[10])
+    ax11.axis("off")
+    ax11.text(-0.05, 1.05, "K", transform=ax11.transAxes, va='top', ha='left')
 
     plt.tight_layout()
 
