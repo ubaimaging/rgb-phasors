@@ -11,6 +11,7 @@ import os
 from matplotlib.colors import hsv_to_rgb
 import pandas as pd
 from natsort import natsorted
+from matplotlib.patches import Rectangle
 
 
 def phasor(image_stack, harmonic=1):
@@ -127,21 +128,19 @@ def phasor_figure(x, y, phases=None, circle_plot=False, phases_lines=False):
 
 def rgb2bgr(im):
     """
+    Converts an RGB image to BGR by reordering the channels.
+    
     Parameters
     ----------
-    im : _type_ image data RGB
+    im : np.ndarray
+        RGB image of shape (H, W, 3)
+    
     Returns
     -------
-    _type_ reorganized image BGR
+    np.ndarray
+        BGR image of shape (H, W, 3)
     """
-    im1 = im[:, :, 0:1]
-    imr = im1.reshape(im1.shape[0], im1.shape[1])
-    im2 = im[:, :, 1:2]
-    img = im2.reshape(im2.shape[0], im2.shape[1])
-    im3 = im[:, :, 2:3]
-    imb = im3.reshape(im3.shape[0], im3.shape[1])
-    bgr = np.asarray([imb, img, imr])
-    return bgr
+    return im[:, :, ::-1].transpose(2, 0, 1)
 
 
 def convert_rgb_to_bgr(image):
@@ -181,7 +180,7 @@ def phasor_clustering(dc, x, nclusters = 2):
 def cluster_phasor_plot(X, pred_y, nclusters=3, title= " ", cluster_type=1):
     from phasorpy.plot import PhasorPlot
     from matplotlib import pyplot
-    fig, ax = plt.subplots(figsize=(7, 7))
+    fig, ax = plt.subplots(figsize=(4, 4))
     ax = pyplot.subplot(1, 1, 1)
     if cluster_type == 1:
         plot = PhasorPlot(ax=ax, allquadrants=True, title='Phasor plot: ' + title)
@@ -224,6 +223,7 @@ def cluster_phasor_plot(X, pred_y, nclusters=3, title= " ", cluster_type=1):
         ax.scatter(X[p4[0], 0], X[p4[0], 1], c='b')
         ax.scatter(X[p5[0], 0], X[p5[0], 1], c='r')
         # phasor_circle(ax)
+    return fig
 
 # -------------------------
 #   INTERACTIVE FUNCTIONS 
@@ -451,7 +451,6 @@ def unmixing_from_phasor(
                                                      rcond=None)[0]
         return fractions
     
-
 
 def map_to_rgb(array):
     """
@@ -880,20 +879,59 @@ def map_mask_to_colors(mask, ind=[0, 1, 2, 3]):
 
 def cluster_phasor_plot_4_clusters(X, pred_y, cluster_type=1, colors=["k", "r", "lime", "b"]):
     from phasorpy.plot import PhasorPlot
-    from matplotlib import pyplot
-    fig, ax = plt.subplots(figsize=(6, 6))
-    ax = pyplot.subplot(1, 1, 1)
+    fig, ax = plt.subplots(figsize=(4, 4))  # Consistente
     if cluster_type == 1:
-        plot = PhasorPlot(ax=ax, allquadrants=True, title="Phasor plot")
+        plot = PhasorPlot(ax=ax, allquadrants=True, title="Phasor Cluster Plot")
 
-    p0 = np.where(pred_y == 0)
-    p1 = np.where(pred_y == 1)
-    p2 = np.where(pred_y == 2)
-    p3 = np.where(pred_y == 3)
-    ax.scatter(X[p0[0], 0], X[p0[0], 1], c=colors[0])
-    ax.scatter(X[p1[0], 0], X[p1[0], 1], c=colors[1])
-    ax.scatter(X[p2[0], 0], X[p2[0], 1], c=colors[2])
-    ax.scatter(X[p3[0], 0], X[p3[0], 1], c=colors[3])
+    for i in range(4):
+        indices = np.where(pred_y == i)
+        ax.scatter(X[indices, 0], X[indices, 1], c=colors[i], s=1)
+
+    ax.set_xlim(-1, 1)
+    ax.set_ylim(-1, 1)
+    ax.set_aspect('equal')
+    return fig
+
+
+from matplotlib.patches import Rectangle
+
+def add_scale_bar(ax, length_px=500, height=10, color='white', linewidth=5, 
+                  fontsize=12, label=None, pad=10):
+    """
+    Agrega una barra de escala horizontal al extremo inferior izquierdo 
+    del eje (con márgenes de 100 px).
+    
+    Parámetros:
+    - ax: eje de matplotlib
+    - length_px: largo de la barra en píxeles
+    - height: alto de la barra en píxeles
+    - color: color de la barra
+    - linewidth: contorno
+    - fontsize: tamaño del texto (si se agrega label)
+    - label: texto opcional para acompañar la barra (por ej. "500 μm")
+    - pad: separación vertical del texto respecto de la barra
+    """
+    # Obtener tamaño de la imagen en píxeles
+    im = ax.images[0]
+    height_img, width_img = im.get_array().shape[:2]
+
+    # Coordenadas del extremo inferior izquierdo con margen
+    x_start = 100
+    y_start = height_img - 100 - height
+
+    # Dibujar la barra
+    scale_bar = Rectangle((x_start, y_start), length_px, height,
+                          color=color, linewidth=linewidth)
+    ax.add_patch(scale_bar)
+
+    # Texto
+    if label:
+        ax.text(x_start + length_px / 2, y_start - pad, label,
+                ha='center', va='top', color=color, fontsize=fontsize)
+
+    # Mantener orientación vertical normal
+    ax.set_ylim(height_img, 0)
+    ax.set_xlim(0, width_img)
 
 
 #################################################
