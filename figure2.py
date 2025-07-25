@@ -415,11 +415,11 @@ if part2:
 
     # ax.set_title("Confusion Matrix", fontsize=14, fontweight='bold')
     plt.tight_layout()
-    #plt.show()
+    plt.show()
 
 
 # Paper Figure
-part3 = True
+part3 = False
 if part3:
     import matplotlib.pyplot as plt
     from matplotlib.gridspec import GridSpec
