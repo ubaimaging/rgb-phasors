@@ -427,4 +427,5 @@ if print_cm:
     # Generar figura compuesta con labels + títulos
     plot_figure_grid(
         figs, titles=titles,
-        save_path="/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig4/nev-mel/phasor_figure_grid.png")
+        save_path="/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig4/nev-mel/phasor_figure_grid.png",
+        dpi=600)
