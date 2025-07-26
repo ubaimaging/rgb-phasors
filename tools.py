@@ -12,6 +12,10 @@ from matplotlib.colors import hsv_to_rgb
 import pandas as pd
 from natsort import natsorted
 from matplotlib.patches import Rectangle
+from phasorpy.plot import PhasorPlot
+from phasorpy.color import CATEGORICAL
+from phasorpy.cursors import mask_from_circular_cursor
+
 
 
 def phasor(image_stack, harmonic=1):
@@ -1179,3 +1183,171 @@ def summarize_methods(csv_path):
     summary_df = pd.DataFrame(summary).T.reset_index()
     summary_df.rename(columns={"index": "Method"}, inplace=True)
     return summary_df
+
+
+def plot_phasor_analysis(
+    image,
+    threshold,
+    filttime,
+    cursors_real=[0.4, 0.1, -0.21],
+    cursors_imag=[0.22, 0.15, 0.1],
+    r=0.15,
+    wavelengths=None,  # opcional para HSI
+    vmin=None,
+    vmax=None,
+    width_hist = 2
+):
+    """
+    Phasor analysis for RGB or HSI images. Returns:
+    - fig1: original image or spectral average
+    - fig2: phasor plot with cursors
+    - fig3: pseudocolor image based on phasor regions
+    - fig4: plot of mean spectra for each cursor
+    """
+
+    is_rgb = len(image.shape) == 3 and image.shape[-1] == 3
+    is_hsi = len(image.shape) == 3 and image.shape[0] > 3
+
+    if not (is_rgb or is_hsi):
+        raise ValueError("Formato de imagen no reconocido (esperado RGB o HSI)")
+
+    # --------- RGB ----------
+    if is_rgb:
+        rgb = rgb2bgr(image)
+        dc, g, s = phasor(rgb)
+        rgb_data = image
+
+        fig1 = plt.figure()
+        plt.imshow(image)
+        plt.axis("off")
+
+    # --------- HSI ----------
+    else:
+        # Rotar si es necesario
+        hsi = image
+        dc, g, s = phasor(hsi)
+        rgb = None
+        rgb_data = hsi  # usamos este nombre para generalizar
+
+        # Promedio espectral como intensidad
+        fig1 = plt.figure()
+        if vmin is None and vmax is None:
+            # Mostrar tal cual está, sin forzar vmin/vmax
+            plt.imshow(dc, cmap="gray")
+        else:
+            # Mostrar con los valores indicados (manual o calculado por percentiles)
+            if vmin is None or vmax is None:
+                vmin, vmax = np.percentile(dc, [1, 99])
+            plt.imshow(dc, cmap="gray", vmin=vmin, vmax=vmax)
+        plt.axis("off")
+
+    # --------- Phasor filtering ----------
+    g = median_filter(g, filttime)
+    s = median_filter(s, filttime)
+    g = np.where(dc > threshold, g, np.NaN)
+    s = np.where(dc > threshold, s, np.NaN)
+
+    # --------- Phasor plot (fig2) ----------
+    plot = PhasorPlot(allquadrants=True, title='')
+    plot.hist2d(g.flatten(), s.flatten(), cmap="RdYlGn_r")
+    plot.ax.set_xlim(-1, 1)
+    plot.ax.set_ylim(-1, 1)
+
+    colors = [CATEGORICAL[1], CATEGORICAL[2], CATEGORICAL[0]]  # BGR
+    for gr, gi, color in zip(cursors_real, cursors_imag, colors):
+        plot.cursor(gr, gi, radius=r, color=color, linestyle='-')
+
+    fig2 = plot.fig
+
+    # --------- Pseudocolor (fig3) ----------
+    cursors_mask = mask_from_circular_cursor(g, s, cursors_real, cursors_imag, radius=r)
+    auxmask = np.transpose(cursors_mask, (1, 2, 0)).astype(int)
+    pseudocolor = map_to_rgb(auxmask)
+
+    fig3 = plt.figure()
+    plt.imshow(pseudocolor)
+    plt.axis("off")
+
+    # --------- Histogram/Spectrum (fig4) ----------
+    fig4 = plt.figure()
+    ax = plt.gca()
+    
+    if is_rgb:
+        x = np.arange(3)  # B, G, R
+        width = width_hist
+        offsets = [-width, 0, width]
+        spectral_labels = ['Blue\n(420–495 nm)', 'Green\n(495–570 nm)', 'Red\n(570–690 nm)']
+
+        for i in range(3):
+            mask = cursors_mask[i]
+            if np.sum(mask) > 0:
+                b_mean = np.mean(rgb_data[mask, 2])
+                g_mean = np.mean(rgb_data[mask, 1])
+                r_mean = np.mean(rgb_data[mask, 0])
+                means = [b_mean, g_mean, r_mean]
+                ax.bar(
+                    x + offsets[i],
+                    means,
+                    width=width,
+                    label=f"Cursor {i+1}",
+                    color=colors[i],
+                    linewidth=3
+                )
+
+        ax.set_xticks(x)
+        ax.set_xticklabels(spectral_labels)
+        ax.set_ylabel("Mean Intensity")
+        ax.set_title("Mean RGB Intensity by Cursor")
+        ax.legend()
+        ax.spines[['top', 'right']].set_visible(False)
+
+    else:
+        bands = rgb_data.shape[0]
+        x = np.arange(bands) if wavelengths is None else wavelengths
+        width = width_hist
+        offsets = [-width, 0, width]
+
+        for i in range(3):
+            mask = cursors_mask[i]
+            if np.sum(mask) > 0:
+                spectra = rgb_data[:, mask]  # shape: (bands, N)
+                mean_spectrum = np.mean(spectra, axis=1)
+                ax.bar(
+                    x + offsets[i],
+                    mean_spectrum,
+                    width=width,
+                    label=f"Cursor {i+1}",
+                    color=colors[i],
+                    linewidth=3
+                )
+
+        if wavelengths is None:
+            ax.set_xticks(np.linspace(0, bands-1, 6).astype(int))
+            ax.set_xticklabels(np.linspace(400, 650, 6).astype(int))
+        ax.set_xlabel("Wavelength (nm)")
+        ax.set_ylabel("Mean Intensity")
+        # ax.set_title("Mean Spectrum by Cursor")
+        ax.legend()
+        ax.spines[['top', 'right']].set_visible(False)
+
+    # --------- Return mean spectra per cursor ----------
+    mean_spectra = []
+
+    for i in range(3):
+        mask = cursors_mask[i]
+        if np.sum(mask) > 0:
+            if is_rgb:
+                b_mean = np.mean(rgb_data[mask, 2])
+                g_mean = np.mean(rgb_data[mask, 1])
+                r_mean = np.mean(rgb_data[mask, 0])
+                spectrum = np.array([b_mean, g_mean, r_mean])  # Blue-Green-Red order
+            else:
+                spectra = rgb_data[:, mask]  # shape: (bands, N)
+                spectrum = np.mean(spectra, axis=1)  # shape: (bands,)
+        else:
+            spectrum = None  # por si el cursor no cubre ningún píxel
+
+        mean_spectra.append(spectrum)
+
+    return fig1, fig2, fig3, fig4, mean_spectra, g, s
+

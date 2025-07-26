@@ -8,7 +8,7 @@ import tifffile
 
 
 # Part 1 is for to RGB imaging
-part1 = False
+part1 = True
 if part1:
     # Open the RGB images 
     imm = plt.imread("/Users/schutyb/Documents/Projects/rgb-phasors/data/autofluorescencia/nev-mel/18852_10x_r1.tif")
