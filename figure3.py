@@ -331,14 +331,14 @@ ax.set_ylabel("Spectral Entropy")
 ax.set_ylim(0, max(entropies) + 0.02)
 ax.tick_params(axis='x', rotation=15)
 
-print("Mel RGB", "Mel HSI", "Nevus RGB", "Nevus HSI")
-print(entropies)
+print("Entropies:", "Mel RGB", "Mel HSI", "Nevus RGB", "Nevus HSI")
+print(np.round(entropies, 2))
 
 # plt.tight_layout()
 
 ##########################################################################################
 
-print_cm = True
+print_cm = False
 if print_cm:
     from matplotlib.gridspec import GridSpec
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
