@@ -181,13 +181,15 @@ def phasor_clustering(dc, x, nclusters = 2):
     return pred_y, imp, cm
 
 
-def cluster_phasor_plot(X, pred_y, nclusters=3, title= " ", cluster_type=1):
+def cluster_phasor_plot(X, pred_y, nclusters=3, title= "", cluster_type=1):
     from phasorpy.plot import PhasorPlot
     from matplotlib import pyplot
     fig, ax = plt.subplots(figsize=(4, 4))
     ax = pyplot.subplot(1, 1, 1)
+    plot = None
     if cluster_type == 1:
-        plot = PhasorPlot(ax=ax, allquadrants=True, title='Phasor plot: ' + title)
+        plot = PhasorPlot(ax=ax, allquadrants=True, title='' + title)
+        fig = plot.fig
 
     if nclusters == 2:
         p0 = np.where(pred_y == 0)
@@ -227,7 +229,7 @@ def cluster_phasor_plot(X, pred_y, nclusters=3, title= " ", cluster_type=1):
         ax.scatter(X[p4[0], 0], X[p4[0], 1], c='b')
         ax.scatter(X[p5[0], 0], X[p5[0], 1], c='r')
         # phasor_circle(ax)
-    return fig
+    return fig, plot
 
 # -------------------------
 #   INTERACTIVE FUNCTIONS 
