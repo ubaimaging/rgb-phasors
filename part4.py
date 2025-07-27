@@ -271,7 +271,7 @@ if plotty:
     plt.tight_layout()
     if savefig: save_figure(fig7, path + "unmixed_image", format=formatfig)
 
-    plt.show()
+    # plt.show()
     plt.close('all')
 
 
@@ -283,13 +283,13 @@ create_paper_figure = True
 if create_paper_figure:
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
     from PIL import Image
+    import matplotlib.gridspec as gridspec
 
     # Figure 1 Original RGB Image
-    fig1 = plt.figure(figsize=(6, 6))
+    fig1 = plt.figure(figsize=(5, 5))
     plt.imshow(image, interpolation="nearest")
-    plt.title("Original RGB Image")
     plt.axis("off") 
-    plt.tight_layout()
+    #plt.tight_layout()
 
     # Draw a dashed line on the figure
     # Define the start and end points of the dashed line
@@ -300,18 +300,17 @@ if create_paper_figure:
 
     # draw_dashed_line_on_figures(fig1, points, color='white', linestyle='--', linewidth=1.5)
 
-    # Figure 2 Phasor Plot
-    plot = PhasorPlot(allquadrants=True, title='Phasor plot of the image')
+    plot = PhasorPlot(allquadrants=True, title='')
+    plot.fig.set_size_inches(5, 4)  # Ajustá esto al tamaño de las otras figuras
     plot.hist2d(real.flatten(), imag.flatten(), cmap="RdYlGn_r")
     plt.plot(realb_cm, imagb_cm, color='blue', markersize=10, marker='o', 
-                linestyle='None', label='Blue channel')
+            linestyle='None', label='Blue channel')
     plt.plot(realg_cm, imagg_cm, color='green', markersize=10, marker='p', 
-                linestyle='None', label='Green channel')
+            linestyle='None', label='Green channel')
     plt.plot(realr_cm, imagr_cm, color='red', markersize=10, marker='*', 
-                linestyle='None', label='Red channel')
+            linestyle='None', label='Red channel')
     plt.legend()
     fig2 = plot.fig
-    plt.tight_layout()
 
     # Figure 6 Histograms
     fig3, ax3 = plt.subplots(figsize=(8, 6))
@@ -321,21 +320,19 @@ if create_paper_figure:
             bins=256, color='green', alpha=0.5, label='Green channel', log=True)
     ax3.hist(fracr.flatten()[fracr.flatten() != 0],
             bins=256, color='red', alpha=0.5, label='Red channel', log=True)
-    ax3.set_title("Thresholded fractions histogram")
     ax3.set_xlabel("Fraction value")
     ax3.set_ylabel("Frequency")
     ax3.set_xlim(0, 1.2)
     ax3.legend()
-    plt.tight_layout()
+    # plt.tight_layout()
 
     fig11 = create_combined_profile_plot(image, rgb_unmixed, start_point, end_point)
     
     # Figure 10 Unmixed RGB Image
-    fig10 = plt.figure(figsize=(6, 6))
+    fig10 = plt.figure(figsize=(5, 5))
     plt.imshow(rgb_adjusted, interpolation="nearest")
-    plt.title("Unmixed RGB Image")
     plt.axis("off")
-    plt.tight_layout()
+    # plt.tight_layout()
 
     draw_dashed_line_on_figures(fig10, points, color='white', 
                                 linestyle='--', linewidth=1.5)
@@ -356,26 +353,35 @@ if create_paper_figure:
     vmax_frac = 1.0
     vmax_prod = np.max([R_photons, G_photons, B_photons])
 
-    def plot_image_only(img, title, vmin, vmax, cmap='inferno'):
+    def plot_image_only(img, vmin, vmax, title=None, cmap='inferno'):
         fig, ax = plt.subplots(figsize=(6, 6))
         ax.imshow(img, cmap=cmap, vmin=vmin, vmax=vmax)
-        ax.set_title(title)
         ax.axis("off")
-        plt.tight_layout()
+        # plt.tight_layout()
         return fig
 
     # --- Crear figuras de fracciones ---
-    fig4 = plot_image_only(R_frac, "Fractions red", vmin=0, vmax=vmax_frac)
-    fig5 = plot_image_only(G_frac, "Fractions green", vmin=0, vmax=vmax_frac)
-    fig6 = plot_image_only(B_frac, "Fractions blue", vmin=0, vmax=vmax_frac)
+    fig4 = plot_image_only(R_frac, vmin=0, vmax=vmax_frac)
+    fig5 = plot_image_only(G_frac, vmin=0, vmax=vmax_frac)
+    fig6 = plot_image_only(B_frac, vmin=0, vmax=vmax_frac)
 
 
     # --- Crear figuras de fotones ---
-    fig7 = plot_image_only(R_photons, "Photons red", vmin=0, vmax=vmax_prod)
-    fig8 = plot_image_only(G_photons, "Photons green", vmin=0, vmax=vmax_prod)
-    fig9 = plot_image_only(B_photons, "Photons blue", vmin=0, vmax=vmax_prod)
+    fig7 = plot_image_only(R_photons, vmin=0, vmax=vmax_prod)
+    fig8 = plot_image_only(G_photons, vmin=0, vmax=vmax_prod)
+    fig9 = plot_image_only(B_photons, vmin=0, vmax=vmax_prod)
 
-    # --- Convertir figura a imagen ---
+    figs = [fig1, fig2, fig3, fig4, fig5, fig6, fig7, fig8, fig9, fig10, fig11]
+
+    # Lista de títulos de cada subfigura
+    titles = [
+        "Original RGB", "Phasor Plot", "Channel Fraction Histograms",
+        "Red Fraction", "Green Fraction", "Blue Fraction",
+        "Red Photons", "Green Photons", "Blue Photons",
+        "Unmixed RGB", "Line Intensity Profile"
+    ]
+
+    # Convertir figuras en imágenes con Canvas
     def fig_to_img_array(fig):
         canvas = FigureCanvas(fig)
         canvas.draw()
@@ -383,7 +389,9 @@ if create_paper_figure:
         plt.close(fig)
         return img
 
-    # --- Redimensionar manteniendo aspecto ---
+    images = [fig_to_img_array(f) for f in figs]
+
+    # Redimensionar manteniendo aspecto
     def resize_preserve_aspect(img, target_width):
         h, w = img.shape[:2]
         scale = target_width / w
@@ -392,78 +400,68 @@ if create_paper_figure:
         resized = img_pil.resize((target_width, new_height), Image.Resampling.LANCZOS)
         return np.array(resized)
 
-    # --- Padding para igualar altura ---
+    # Padding vertical para igualar alturas
     def pad_to_height(img, target_height):
         h, w, c = img.shape
-        if h == target_height:
-            return img
         pad_top = (target_height - h) // 2
         pad_bottom = target_height - h - pad_top
-        padded = np.pad(img, ((pad_top, pad_bottom), (0, 0), (0, 0)), mode='constant')
-        return padded
+        return np.pad(img, ((pad_top, pad_bottom), (0, 0), (0, 0)), mode='constant')
 
-    # --- Convertir todas las figuras a arrays ---
-    figs = [fig1, fig2, fig3, fig4, fig5, fig6, fig7, fig8, fig9, fig10, fig11]
-    images = [fig_to_img_array(f) for f in figs]
-
-    # --- Redimensionar todas al mismo ancho manteniendo aspecto ---
+    # Redimensionar imágenes
     target_width = 600
     images_resized = [resize_preserve_aspect(im, target_width) for im in images]
-
-    # --- Obtener la altura máxima ---
     target_height = max(im.shape[0] for im in images_resized)
-
-    # --- Aplicar padding para unificar altura ---
     images_padded = [pad_to_height(im, target_height) for im in images_resized]
 
-    # --- Crear figura final con subplots ---
-    import matplotlib.gridspec as gridspec
-
+    # Crear figura final
     fig_final = plt.figure(figsize=(18, 12))
     gs = gridspec.GridSpec(4, 3, height_ratios=[1, 1, 1, 1])
 
-    # Fila 1: fig1, fig2, fig3
+    # Fila 1 (A, B, C)
     for i in range(3):
         ax = fig_final.add_subplot(gs[0, i])
         ax.imshow(images_padded[i])
         ax.axis("off")
+        ax.set_title(titles[i], fontsize=10)
         ax.text(-0.05, 1.05, chr(65 + i), transform=ax.transAxes,
-                fontsize=14, fontweight='bold', va='top', ha='left')
+                fontsize=16, fontweight='bold', va='top', ha='left')
 
-    # Fila 2: fig4, fig5, fig6
+    # Fila 2 (D, E, F)
     for i in range(3, 6):
         ax = fig_final.add_subplot(gs[1, i - 3])
         ax.imshow(images_padded[i])
         ax.axis("off")
+        ax.set_title(titles[i], fontsize=10)
         ax.text(-0.05, 1.05, chr(65 + i), transform=ax.transAxes,
-                fontsize=14, fontweight='bold', va='top', ha='left')
+                fontsize=16, fontweight='bold', va='top', ha='left')
 
-    # Fila 3: fig7, fig8, fig9
+    # Fila 3 (G, H, I)
     for i in range(6, 9):
         ax = fig_final.add_subplot(gs[2, i - 6])
         ax.imshow(images_padded[i])
         ax.axis("off")
+        ax.set_title(titles[i], fontsize=10)
         ax.text(-0.05, 1.05, chr(65 + i), transform=ax.transAxes,
                 fontsize=14, fontweight='bold', va='top', ha='left')
 
-    # Fila 4: fig10, fig11 (fig11 ocupa dos columnas)
+    # Fila 4: fig10 en [3,0] (J), fig11 en [3,1:] (K)
     ax10 = fig_final.add_subplot(gs[3, 0])
     ax10.imshow(images_padded[9])
     ax10.axis("off")
-    ax10.text(-0.05, 1.05, "J", transform=ax10.transAxes, va='top', ha='left')
+    ax10.set_title(titles[9], fontsize=10)
+    ax10.text(-0.05, 1.05, "J", transform=ax10.transAxes, fontsize=16, fontweight='bold', va='top', ha='left')
 
-    ax11 = fig_final.add_subplot(gs[3, 1])
+    ax11 = fig_final.add_subplot(gs[3, 1:])
     ax11.imshow(images_padded[10])
     ax11.axis("off")
-    ax11.text(-0.05, 1.05, "K", transform=ax11.transAxes, va='top', ha='left')
+    ax11.set_title(titles[10], fontsize=10)
+    ax11.text(-0.05, 1.05, "K", transform=ax11.transAxes, fontsize=16, fontweight='bold', va='top', ha='left')
 
     plt.tight_layout()
 
-    # --- Guardar figura final ---
-    path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig5/data/figures/sample3/"
-    fig_final.savefig(path + "figure_part4.pdf", dpi=600)
-    fig_final.savefig(path + "figure_part4.jpg", dpi=600)
-
+    # Guardar figura final
+    fig_final.savefig(
+        "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig5/data/figures/final_figure4.png", dpi=300)
     plt.close(fig_final)
 
 

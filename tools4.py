@@ -390,16 +390,16 @@ def create_combined_profile_plot(original_img, unmixed_img, start_point, end_poi
     labels = ['Red', 'Green', 'Blue']
 
     # Create figure and single axes
-    fig, ax = plt.subplots(figsize=(6, 5))
+    fig, ax = plt.subplots(figsize=(8, 5))
 
     for i in range(3):
         # ax.plot(profiles_orig[i], color=colors[i], label=f"Original")
         ax.plot(profiles_unmix[i], color=colors[i], label=f"{labels[i]}")
 
-    ax.set_title("Intensity Profiles Along Line")
+    # ax.set_title("Intensity Profiles Along Line")
     ax.set_xlabel("Distance")
     ax.set_ylabel("Intensity")
     ax.legend(loc='upper right')
-    fig.tight_layout()
+    # fig.tight_layout()
     
     return fig
