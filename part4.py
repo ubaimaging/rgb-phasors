@@ -149,6 +149,7 @@ if plotty:
 
 sample1 = False  # single cell image configuration
 sample2 = False  # single cell image configuration
+sample3 = True
 if sample1:
     image = plt.imread(path + "sample1.tif")[150:1800, 600:2050]
     threshold = [5, 120, 5, 100, 5, 130]
@@ -161,13 +162,13 @@ elif sample2:
     rang = np.array([[0, 0.7], [0, 1], [0.2, 0.5]])
     mean_threshold = 2
 
-else:
+elif sample3:
     # paper image configuration
     image = plt.imread(path + "sample3.tif")
     threshold = [0, 100, 1, 80, 1, 95]
     rang = np.array([[0.3, 0.8], [0.05, 1], [0.2, 0.5]])
     mean_threshold = 5
-    
+
 
 # Build the thresholded RGB image
 rgb_composed = build_thresholded_rgb(image, thresholds=threshold, plotty=False)
@@ -271,15 +272,15 @@ if plotty:
     plt.tight_layout()
     if savefig: save_figure(fig7, path + "unmixed_image", format=formatfig)
 
-    # plt.show()
-    plt.close('all')
+    plt.show()
+    # plt.close('all')
 
 
 # --- .......................... ---
 # --- Part 3 Create Paper Figure ---
 # --- .......................... ---
 
-create_paper_figure = True
+create_paper_figure = False
 if create_paper_figure:
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
     from PIL import Image
