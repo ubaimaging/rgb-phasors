@@ -1,21 +1,54 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import colors
+import tifffile as tiff
+import os
+import pandas as pd
+
 from skimage.filters import median
 from matplotlib.widgets import Cursor
 import math
+
 import seaborn as sns
-import pandas as pd
-import tifffile as tiff
-import os
-from matplotlib.colors import hsv_to_rgb
-import pandas as pd
+
 from natsort import natsorted
+
+from matplotlib import colors
+from matplotlib.colors import hsv_to_rgb
 from matplotlib.patches import Rectangle
+import matplotlib.pyplot as plt
+
 from phasorpy.plot import PhasorPlot
 from phasorpy.color import CATEGORICAL
 from phasorpy.cursors import mask_from_circular_cursor
 
+import string
+from matplotlib.gridspec import GridSpec
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+
+
+
+def apply_plot_style():
+    """    Applies a consistent plotting style for the figures.
+    This function sets the font sizes, family, 
+    and other aesthetic parameters
+    to ensure a uniform appearance across all plots.
+    It is called at the beginning of the script to set the style 
+    before any plots are created
+    """
+    plt.rcParams.update({
+        'font.size': 12,
+        'font.family': 'sans-serif',
+        'font.sans-serif': ['Arial'],
+        'axes.labelsize': 12,
+        'axes.labelweight': 'bold',
+        'axes.titlesize': 16,
+        'axes.linewidth': 1.5,
+        'xtick.labelsize': 10,
+        'ytick.labelsize': 10,
+        'legend.fontsize': 10,
+        'legend.frameon': False,
+        'savefig.dpi': 600,
+        'figure.dpi': 150,
+    })
 
 
 def phasor(image_stack, harmonic=1):
@@ -1233,15 +1266,21 @@ def plot_phasor_analysis(
 
         # Promedio espectral como intensidad
         fig1 = plt.figure()
+
         if vmin is None and vmax is None:
             # Mostrar tal cual está, sin forzar vmin/vmax
-            plt.imshow(dc, cmap="gray")
+            im = plt.imshow(dc, cmap="gray")
         else:
             # Mostrar con los valores indicados (manual o calculado por percentiles)
             if vmin is None or vmax is None:
                 vmin, vmax = np.percentile(dc, [1, 99])
-            plt.imshow(dc, cmap="gray", vmin=vmin, vmax=vmax)
+            im = plt.imshow(dc, cmap="gray", vmin=vmin, vmax=vmax)
+
         plt.axis("off")
+
+        # Agregar barra de color
+        cbar = plt.colorbar(im, fraction=0.046, pad=0.04)
+        cbar.ax.tick_params(labelsize=12)  # tamaño de letra opcional para paper
 
     # --------- Phasor filtering ----------
     g = median_filter(g, filttime)
@@ -1353,3 +1392,59 @@ def plot_phasor_analysis(
 
     return fig1, fig2, fig3, fig4, mean_spectra, g, s
 
+
+
+def figure_to_array(fig, dpi=300):
+    """Convert a matplotlib figure to a NumPy RGBA image array."""
+    fig.set_dpi(dpi)
+    canvas = FigureCanvas(fig)
+    canvas.draw()
+    width, height = canvas.get_width_height()
+    img = np.frombuffer(canvas.buffer_rgba(), dtype=np.uint8).reshape((height, width, 4))
+    plt.close(fig)
+    return img
+
+def plot_figure_grid(figures, titles=None, grid_shape=(3, 4), figsize=(12, 9), dpi=600, save_path=None):
+    """
+    Plots figures in a grid and saves or returns the composite figure.
+
+    Parameters:
+        figures (list): List of matplotlib figures.
+        titles (list): Optional list of titles, same length as figures.
+        grid_shape (tuple): Grid dimensions (rows, cols), e.g., (3, 4).
+        figsize (tuple): Size of the final figure.
+        dpi (int): Resolution.
+        save_path (str): If provided, saves to this path.
+    """
+    rows, cols = grid_shape
+    n_figs = rows * cols
+
+    if len(figures) != n_figs:
+        raise ValueError(f"You must provide exactly {n_figs} figures for a {rows}x{cols} grid.")
+    if titles and len(titles) != n_figs:
+        raise ValueError("Titles list must have the same length as figures.")
+
+    images = [figure_to_array(f, dpi=dpi) for f in figures]
+    labels = list(string.ascii_uppercase[:n_figs])
+
+    fig = plt.figure(figsize=figsize)
+    gs = GridSpec(rows, cols, figure=fig, wspace=0.01, hspace=0.01)
+
+    index = 0
+    for r in range(rows):
+        for c in range(cols):
+            ax = fig.add_subplot(gs[r, c])
+            ax.imshow(images[index])
+            ax.axis("off")
+            ax.text(0.02, 0.95, labels[index], transform=ax.transAxes,
+                    fontsize=12, fontweight='bold', va='top', ha='left',
+                    bbox=dict(facecolor='white', edgecolor='none', alpha=0.6))
+            if titles:
+                ax.set_title(titles[index], fontsize=10, pad=4)
+            index += 1
+
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Saved to {save_path}")
+    else:
+        return fig

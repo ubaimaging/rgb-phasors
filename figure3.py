@@ -9,9 +9,15 @@ from phasorpy.cursors import mask_from_circular_cursor
 
 import tifffile
 
+
+
 from tools import(
-    plot_phasor_analysis
+    plot_phasor_analysis,
+    apply_plot_style
 )
+
+
+apply_plot_style()
 
 
 part_rgb = True
@@ -337,6 +343,8 @@ print(np.round(entropies, 2))
 # plt.tight_layout()
 
 ##########################################################################################
+#                   Paper FIGURE option 1                  
+##########################################################################################
 
 print_cm = False
 if print_cm:
@@ -429,3 +437,24 @@ if print_cm:
         figs, titles=titles,
         save_path="/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig4/nev-mel/phasor_figure_grid.png",
         dpi=600)
+    
+
+##########################################################################################
+#                   Paper FIGURE option 2                  
+##########################################################################################
+
+fig_opt2 = True
+if fig_opt2:
+    from tools import plot_figure_grid
+    figs_3x4 = [fig1, fig5, fig9, fig13, fig2, fig6, fig10, fig14, fig3, fig7, fig11, fig15]
+    titles_3x4 = ["RGB Nevus", "HSI Nevus", "RGB Melanoma", "HSI Melanoma", 
+                    "Phasor Plot", "Phasor Plot", "Phasor Plot", "Phasor Plot",
+                    "Pseudocolor", "Pseudocolor", "Pseudocolor", "Pseudocolor"]
+    save_path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig4/nev-mel/autofluoresence_1.png"
+    # plot_figure_grid(figs_3x4, titles=titles_3x4, grid_shape=(3, 4), save_path=save_path)
+
+    figs_2x2 = [fig4, fig8, fig12, fig16]
+    titles_2x4 = ["Histogram RGB vs HSI", "Phasor PCA Ellipses (95% CI)",
+                  "Average Spectra", "Phasor Entropy across Conditions"]
+    save_path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig4/nev-mel/autofluoresence_2.png"
+    plot_figure_grid(figs_2x2, grid_shape=(2, 2), save_path=save_path, titles=titles_2x4)
