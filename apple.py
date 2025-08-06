@@ -64,3 +64,14 @@ if cursors:
     fig7 = plt.figure(figsize=(5, 5))
     plt.imshow(auxx)
     plt.axis("off")
+
+    img_rgb = np.transpose(cursors_mask, (1, 2, 0))
+
+    # Plotear
+    plt.figure()
+    plt.imshow(img_rgb)
+    plt.axis('off')
+    plt.title('RGB Image')
+    plt.show()
+
+plt.show()

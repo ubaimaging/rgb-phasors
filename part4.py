@@ -11,6 +11,7 @@ from phasorpy.plot import PhasorPlot
 from phasorpy.color import CATEGORICAL
 from phasorpy.phasor import phasor_from_signal, phasor_threshold
 from phasorpy.components import phasor_component_fit
+from phasorpy.cursors import mask_from_circular_cursor
 
 from tools4 import (
     build_thresholded_rgb,
@@ -170,13 +171,106 @@ elif sample3:
     mean_threshold = 5
 
 
+##################################################
+#           Plot each channel separated
+##################################################
+from matplotlib.colors import Normalize
+
+# Separar canales
+R, G, B = image[:,:,0], image[:,:,1], image[:,:,2]
+
+B = threshold_by_range(B, 8, 100)
+G = threshold_by_range(G, 15, 80)
+R = threshold_by_range(R, 15, 95)
+
+channel_data = [
+    (R, "Red Channel", "Reds"),
+    (G, "Green Channel", "Greens"),
+    (B, "Blue Channel", "Blues")
+]
+
+figs = []
+
+for channel, title, cmap in channel_data:
+    fig_ch, ax = plt.subplots(figsize=(5, 5))
+    im = ax.imshow(channel, cmap=cmap)
+    ax.set_title(title)
+    ax.axis("off")
+    plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+    figs.append(fig_ch)
+
+figs[0].show() 
+figs[1].show() 
+figs[1].show()
+
+
 # Build the thresholded RGB image
-rgb_composed = build_thresholded_rgb(image, thresholds=threshold, plotty=False)
+rgb_composed = build_thresholded_rgb(image, 
+                    thresholds=threshold, plotty=False)
 
 img = rgb2bgr(rgb_composed) # Convert RGB to BGR
 # img = rgb2bgr(image) # Convert RGB to BGR
 avg, real, imag = phasor_from_signal(img, axis=0)
-avg, real, imag = phasor_threshold(avg, real, imag, mean_min=mean_threshold)
+avg, real, imag = phasor_threshold(avg, real, imag, 
+                                   mean_min=mean_threshold)
+
+##################################################
+#               Cursors Analysis 
+##################################################
+# Components center of mass
+
+cursors_real = [realb_cm, realg_cm, 0]
+cursors_imag = [imagb_cm, imagg_cm, 0]
+radius = [0.2, 0.2, 0.2]
+
+plot = PhasorPlot(allquadrants=True, title='')
+plot.hist2d(real.flatten(), imag.flatten(), cmap="RdYlGn_r")
+fig4 = plot.fig
+fig4 = plot.fig
+plot.fig.set_size_inches(5, 5) 
+plot.ax.set_aspect('equal')  
+
+# Plot cursors Blue, Green, Red
+plot.cursor(
+    cursors_real[0],
+    cursors_imag[0],
+    radius=radius[0],
+    color=CATEGORICAL[1],
+    linestyle='-',
+)
+
+plot.cursor(
+    cursors_real[1],
+    cursors_imag[1],
+    radius=radius[1],
+    color=CATEGORICAL[2],
+    linestyle='-',
+)
+
+plot.cursor(
+    cursors_real[2],
+    cursors_imag[2],
+    radius=radius[2],
+    color=CATEGORICAL[0],
+    linestyle='-',
+)
+
+cursors_mask = mask_from_circular_cursor(
+    real, imag, cursors_real, cursors_imag, 
+    radius=radius)
+
+auxmask = np.transpose(cursors_mask, (1, 2, 0)).astype(int)
+from tools import map_to_rgb
+auxx = map_to_rgb(auxmask)
+
+fig_cursos = plt.figure(figsize=(5, 5))
+plt.imshow(auxx)
+plt.axis("off")
+
+
+##################################################
+#          Spectral Unmixing Analysis 
+##################################################
 
 # Components center of mass
 gs = np.array([realb_cm, realg_cm, realr_cm])
@@ -464,6 +558,7 @@ if create_paper_figure:
     fig_final.savefig(
         "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig5/data/figures/final_figure4.png", dpi=300)
     plt.close(fig_final)
+
 
 
 # --- ....................... ---

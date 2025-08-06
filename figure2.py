@@ -72,42 +72,35 @@ if part1:
         ax1.imshow(increase_brightness(im1, 2))
         ax1.axis('off')
         add_scale_bar(ax1, length_px=500, color='white')
-        plt.title("Normal Diet RGB")
-        fig1.tight_layout()
+        # plt.title("Normal Diet RGB")
 
         fig5 = plt.figure(figsize=(4, 4))
         ax5 = plt.gca()
         ax5.imshow(increase_brightness(im2, 2))
         ax5.axis('off')
         add_scale_bar(ax5, length_px=500, color='white')
-        plt.title("Normal Diet Inst RGB")
-        fig5.tight_layout()
+        # plt.title("Normal Diet Inst RGB")
 
         fig4 = plt.figure(figsize=(4, 4))
         plt.imshow(map_mask_to_colors(imp1,[0, 2, 1, 3]))
-        plt.title("Segmentation (ND)")
+        # plt.title("Segmentation (ND)")
         plt.axis('off')
         ax4 = plt.gca()
         add_scale_bar(ax4, length_px=500, color='white')
-        fig4.tight_layout()
 
         tam = 6
         fig3 = cluster_phasor_plot_4_clusters(X1, pred_y1)
         fig3.set_size_inches(tam, tam)
-        fig3.tight_layout()
 
         fig8 = plt.figure(figsize=(4, 4))
         plt.imshow(map_mask_to_colors(imp2, [2, 3, 0, 1]))
-        plt.title("Segmentation (ND inst)")
         plt.axis('off')
         ax8 = plt.gca()
         add_scale_bar(ax8, length_px=500, color='white')
-        fig8.tight_layout()
 
         fig7 = cluster_phasor_plot_4_clusters(X2, pred_y2, 
                                               colors=["r", "b", "k", "lime"])
         fig7.set_size_inches(tam, tam)
-        fig7.tight_layout()
 
         plotmask = False
         if plotmask:
@@ -119,7 +112,7 @@ if part1:
             plt.axis('off')
 
         # Phasor Plot
-        plot = PhasorPlot(allquadrants=True, title='Phasor Plot')
+        plot = PhasorPlot(allquadrants=True, title='')
         plot.hist2d(g1.flatten(), s1.flatten(), cmap="RdYlGn_r")
         fig2 = plot.fig
         fig2.set_size_inches(tam, tam)
@@ -128,7 +121,7 @@ if part1:
         ax2.set_xlim(-1, 1)
         ax2.set_ylim(-1, 1)
 
-        plot = PhasorPlot(allquadrants=True, title='Phasor Plot')
+        plot = PhasorPlot(allquadrants=True, title='')
         plot.hist2d(g2.flatten(), s2.flatten(), cmap="RdYlGn_r")
         fig6 = plot.fig
         fig6.set_size_inches(tam, tam)
@@ -415,10 +408,13 @@ if part2:
 
     # ax.set_title("Confusion Matrix", fontsize=14, fontweight='bold')
     plt.tight_layout()
-    plt.show()
+    # plt.show()
 
 
-# Paper Figure
+# #####################################################################
+#                           Paper Figure
+# #####################################################################
+
 part3 = False
 if part3:
     import matplotlib.pyplot as plt
@@ -472,3 +468,18 @@ if part3:
         [fig1, fig2, fig3, fig4, fig5, fig6, fig7, fig8, fig9, fig10, fig11, fig12],
         save_path="/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig2y3/summary_phasor_paper.png"
 )
+    
+opt2 = True
+if opt2:
+    from tools import plot_figure_grid
+
+    figs_2x2 = [fig1, fig5, fig2, fig6, fig3, fig7, fig4, fig8]
+
+    titles_2x4 = ["Normal diet RGB", "Normal diet inst RGB",
+                  "Phasor Plot", "Phasor Plot",
+                  "Phasor Cluter", "Phasor Cluter", 
+                  "Pseudocolor Image", "Pseudocolor Image"
+                  ]
+    
+    save_path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig2y3/summary_phasor_paper.png"
+    plot_figure_grid(figs_2x2, grid_shape=(4, 2), save_path=save_path, titles=titles_2x4)

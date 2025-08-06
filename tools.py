@@ -920,7 +920,7 @@ def cluster_phasor_plot_4_clusters(X, pred_y, cluster_type=1, colors=["k", "r", 
     from phasorpy.plot import PhasorPlot
     fig, ax = plt.subplots(figsize=(4, 4))  # Consistente
     if cluster_type == 1:
-        plot = PhasorPlot(ax=ax, allquadrants=True, title="Phasor Cluster Plot")
+        plot = PhasorPlot(ax=ax, allquadrants=True, title="")
 
     for i in range(4):
         indices = np.where(pred_y == i)
@@ -928,7 +928,7 @@ def cluster_phasor_plot_4_clusters(X, pred_y, cluster_type=1, colors=["k", "r", 
 
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1, 1)
-    ax.set_aspect('equal')
+    # ax.set_aspect('equal')
     return fig
 
 
