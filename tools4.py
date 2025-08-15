@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 from skimage.filters import threshold_otsu
 from skimage.measure import profile_line
+import os
 
 
 def apply_plot_style():
@@ -403,3 +404,27 @@ def create_combined_profile_plot(original_img, unmixed_img, start_point, end_poi
     # fig.tight_layout()
     
     return fig
+
+
+def remap_rgb_channels(mask):
+    """
+    Remap channels: Blue -> Green, Green -> Red, Red -> Blue.
+
+    Parameters:
+        mask : np.ndarray
+            Input array of shape (H, W, 3).
+
+    Returns:
+        np.ndarray
+            Remapped array.
+    """
+    if mask.shape[-1] != 3:
+        raise ValueError("Input must have 3 channels (last dimension = 3)")
+
+    remapped = np.empty_like(mask)
+    remapped[..., 0] = mask[..., 1]  # Red   <- Green
+    remapped[..., 1] = mask[..., 2]  # Green <- Blue
+    remapped[..., 2] = mask[..., 0]  # Blue  <- Red
+    return remapped
+
+

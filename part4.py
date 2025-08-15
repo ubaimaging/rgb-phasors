@@ -33,8 +33,9 @@ from tools4 import (
 apply_plot_style()
 
 # Set to True to save figures
-savefig = False
-formatfig = 'jpg'  # 'pdf', 'png', 'jpg'
+savefig = True
+formatfig = 'png'  # 'pdf', 'png', 'jpg'
+path2 = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig5/data/figures/sample3/"
 
 # import data from local file
 path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig5/data/"
@@ -124,7 +125,7 @@ if plotty:
     axes[1, 2].set_xlim(0, 255)
 
     plt.tight_layout()
-    if savefig: save_figure(fig, path + "components_and_histograms", format=formatfig)
+    if savefig: save_figure(fig, path2 + "components_and_histograms", format=formatfig)
 
     plot = PhasorPlot(allquadrants=True, title='Components Phasor Plot')
     plot.hist2d(realb.flatten(), imagb.flatten(), cmap="RdYlGn_r")
@@ -139,7 +140,7 @@ if plotty:
     plt.plot(realr_cm, imagr_cm, color='red', markersize=9, marker='*', 
                 linestyle='None', label='Red component')
     plt.legend()
-    if savefig: save_figure(plot.fig, path + "components_phasor_plot", format=formatfig)
+    if savefig: save_figure(plot.fig, path2 + "components_phasor_plot", format=formatfig)
 
     # plt.show()
 
@@ -214,59 +215,6 @@ avg, real, imag = phasor_from_signal(img, axis=0)
 avg, real, imag = phasor_threshold(avg, real, imag, 
                                    mean_min=mean_threshold)
 
-##################################################
-#               Cursors Analysis 
-##################################################
-# Components center of mass
-
-cursors_real = [realb_cm, realg_cm, 0]
-cursors_imag = [imagb_cm, imagg_cm, 0]
-radius = [0.2, 0.2, 0.2]
-
-plot = PhasorPlot(allquadrants=True, title='')
-plot.hist2d(real.flatten(), imag.flatten(), cmap="RdYlGn_r")
-fig4 = plot.fig
-fig4 = plot.fig
-plot.fig.set_size_inches(5, 5) 
-plot.ax.set_aspect('equal')  
-
-# Plot cursors Blue, Green, Red
-plot.cursor(
-    cursors_real[0],
-    cursors_imag[0],
-    radius=radius[0],
-    color=CATEGORICAL[1],
-    linestyle='-',
-)
-
-plot.cursor(
-    cursors_real[1],
-    cursors_imag[1],
-    radius=radius[1],
-    color=CATEGORICAL[2],
-    linestyle='-',
-)
-
-plot.cursor(
-    cursors_real[2],
-    cursors_imag[2],
-    radius=radius[2],
-    color=CATEGORICAL[0],
-    linestyle='-',
-)
-
-cursors_mask = mask_from_circular_cursor(
-    real, imag, cursors_real, cursors_imag, 
-    radius=radius)
-
-auxmask = np.transpose(cursors_mask, (1, 2, 0)).astype(int)
-from tools import map_to_rgb
-auxx = map_to_rgb(auxmask)
-
-fig_cursos = plt.figure(figsize=(5, 5))
-plt.imshow(auxx)
-plt.axis("off")
-
 
 ##################################################
 #          Spectral Unmixing Analysis 
@@ -284,7 +232,7 @@ fracg = threshold_by_range(frac[1], rang[1][0], rang[1][1])
 fracr = threshold_by_range(frac[2], rang[2][0], rang[2][1])
 
 rgb_unmixed = apply_unmixing_to_rgb(image, fracr, fracg, fracb)
-rgb_adjusted = increase_brightness(rgb_unmixed, factor=2)
+rgb_adjusted = increase_brightness(rgb_unmixed, factor=3)
 
 R_photons, G_photons, B_photons = photon_fraction_maps(image, fracr, fracg, fracb)
 
@@ -297,7 +245,7 @@ if plotty:
     plt.title("Original RGB Image")
     plt.axis("off") 
     plt.tight_layout()
-    if savefig: save_figure(fig1, path + "original_image", format=formatfig)
+    if savefig: save_figure(fig1, path2 + "original_image", format=formatfig)
 
     # Plot the intensity image
     # This shows the sum of the RGB channels as a grayscale image
@@ -311,7 +259,7 @@ if plotty:
     cbar = plt.colorbar(im, cax=cax)
     cbar.set_label("Photon count")
     plt.tight_layout()
-    if savefig: save_figure(fig2, path + "intensity_image", format=formatfig)
+    if savefig: save_figure(fig2, path2 + "intensity_image", format=formatfig)
 
     # Figure Phasor Plot
     plot = PhasorPlot(allquadrants=True, title='Phasor plot of the image')
@@ -325,7 +273,7 @@ if plotty:
     plt.legend()
     fig3 = plot.fig
     plt.tight_layout()
-    if savefig: save_figure(fig3, path + "phasor_plot", format=formatfig)
+    if savefig: save_figure(fig3, path2 + "phasor_plot_with_comp", format=formatfig)
 
     # Plot Histograms
     # Plot Complete Histograms
@@ -336,7 +284,7 @@ if plotty:
     ax4.set_ylabel("Frequency")
     plt.tight_layout()
     if savefig:
-        save_figure(fig4, path + "histogram_intensity", format=formatfig)
+        save_figure(fig4, path2 + "histogram_intensity", format=formatfig)
 
     # Plot Thresholded Fractions Histogram
     fig5, ax5 = plt.subplots()
@@ -352,11 +300,11 @@ if plotty:
     ax5.set_xlim(0, 1.2)
     ax5.legend()
     plt.tight_layout()
-    if savefig: save_figure(fig5, path + "histograms", format=formatfig)
+    if savefig: save_figure(fig5, path2 + "histograms", format=formatfig)
 
     # Plot the photon unmixing results
     fig6 = plot_photon_unmixing(fracr, fracg, fracb, R_photons, G_photons, B_photons)
-    if savefig: save_figure(fig6, path + "photon_unmixing", format=formatfig)
+    if savefig: save_figure(fig6, path2 + "photon_unmixing", format=formatfig)
 
     # Plot the unmixed RGB image
     fig7 = plt.figure()
@@ -364,7 +312,7 @@ if plotty:
     plt.title("Unmixed RGB Image")
     plt.axis("off")
     plt.tight_layout()
-    if savefig: save_figure(fig7, path + "unmixed_image", format=formatfig)
+    if savefig: save_figure(fig7, path2 + "unmixed_image", format=formatfig)
 
     plt.show()
     # plt.close('all')

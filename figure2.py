@@ -12,7 +12,8 @@ from tools import (
     rgb2bgr,
     cluster_phasor_plot_4_clusters,
     median_filter,
-    map_mask_to_colors
+    map_mask_to_colors,
+    apply_plot_style
 )
 
 plt.rcParams.update({
@@ -26,6 +27,8 @@ plt.rcParams.update({
     "figure.figsize": (8, 8),
 })
 
+
+apply_plot_style()
 
 # Lee una imagen RGB calcula y plotea el phasor y el clusterized phasor
 part1 = True
