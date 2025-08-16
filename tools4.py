@@ -313,8 +313,8 @@ def plot_photon_unmixing(R_frac, G_frac, B_frac, R_photons, G_photons, B_photons
     im_fracs = []
     for ax, img, title in zip(
         axes[0],
-        [R_frac, G_frac, B_frac],
-        ["Fractions red", "Fractions green", "Fractions blue"]
+        [B_frac, G_frac, R_frac],
+        ["Fractions Blue", "Fractions Green", "Fractions Red"]
     ):
         im = ax.imshow(img, cmap='inferno', interpolation='nearest', vmin=0, vmax=vmax_frac)
         ax.set_title(title)
@@ -331,8 +331,8 @@ def plot_photon_unmixing(R_frac, G_frac, B_frac, R_photons, G_photons, B_photons
     im_prods = []
     for ax, img, title in zip(
         axes[1],
-        [R_photons, G_photons, B_photons],
-        ["Photons red", "Photons green", "Photons blue"]
+        [B_photons, G_photons, R_photons],
+        ["Blue Channel", "Green Channel", "Red Channel"]
     ):
         im = ax.imshow(img, cmap='inferno', interpolation='nearest', vmin=0, vmax=vmax_prod)
         ax.set_title(title)
@@ -342,7 +342,7 @@ def plot_photon_unmixing(R_frac, G_frac, B_frac, R_photons, G_photons, B_photons
     fig.colorbar(
         im_prods[0], ax=axes[1],
         orientation='vertical', fraction=0.02, pad=0.08,
-        location='left', label="Photon Estimate"
+        location='left', label="Intensity"
     )
     #plt.tight_layout()
     return fig

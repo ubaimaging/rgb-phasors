@@ -13,6 +13,8 @@ from phasorpy.phasor import phasor_from_signal, phasor_threshold
 from phasorpy.components import phasor_component_fit
 from phasorpy.cursors import mask_from_circular_cursor
 
+from tools import add_scale_bar
+
 from tools4 import (
     build_thresholded_rgb,
     apply_plot_style, 
@@ -33,7 +35,7 @@ from tools4 import (
 apply_plot_style()
 
 # Set to True to save figures
-savefig = True
+savefig = False
 formatfig = 'png'  # 'pdf', 'png', 'jpg'
 path2 = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig5/data/figures/sample3/"
 
@@ -287,7 +289,7 @@ if plotty:
         save_figure(fig4, path2 + "histogram_intensity", format=formatfig)
 
     # Plot Thresholded Fractions Histogram
-    fig5, ax5 = plt.subplots()
+    fig5, ax5 = plt.subplots(figsize=(12, 6))
     ax5.hist(fracb.flatten()[fracb.flatten() != 0],
             bins=256, color='blue', alpha=0.5, label='Blue channel', log=True)
     ax5.hist(fracg.flatten()[fracg.flatten() != 0],
@@ -307,10 +309,21 @@ if plotty:
     if savefig: save_figure(fig6, path2 + "photon_unmixing", format=formatfig)
 
     # Plot the unmixed RGB image
-    fig7 = plt.figure()
+    fig7, ax7 = plt.subplots()
+
     plt.imshow(rgb_adjusted, interpolation="nearest")
     plt.title("Unmixed RGB Image")
     plt.axis("off")
+
+    start_point = (940, 1337)
+    end_point = (1672, 1634)
+    points = (start_point, end_point)
+    draw_dashed_line_on_figures(fig7, points, color='white', 
+                            linestyle='--', linewidth=1.5)
+    
+    add_scale_bar(ax7,
+            length_px=625, height=10, color='white', linewidth=5,
+            fontsize=12, label=None, pad=10)
     plt.tight_layout()
     if savefig: save_figure(fig7, path2 + "unmixed_image", format=formatfig)
 

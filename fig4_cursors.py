@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from phasorpy.plot import PhasorPlot, plot_image
 from phasorpy.color import CATEGORICAL
 from phasorpy.phasor import phasor_from_signal, phasor_threshold
+from tools import add_scale_bar
 
 from phasorpy.cursors import (
     mask_from_elliptic_cursor,
@@ -121,10 +122,15 @@ plt.savefig(path2 + "phasor_plot.png",
             dpi=300, bbox_inches="tight")
 
 new_mask = remap_rgb_channels(pseudo_color_image)
-plt.figure()
-plt.imshow(new_mask)
-plt.axis("off")
-plt.title("Pseudocolor Image")
+
+fig, ax = plt.subplots()
+ax.imshow(new_mask)
+ax.axis("off")
+ax.set_title("Pseudocolor Image")
+
+add_scale_bar(ax,
+              length_px=625, height=10, color='white', linewidth=5,
+              fontsize=12, label=None, pad=10)
 
 plt.savefig(path2 + "pseudocolor_cursors.png", 
             dpi=300, bbox_inches="tight")
@@ -147,41 +153,54 @@ if part2:
     B = arr[..., 2]
 
     # Mostrar imagen original
-    plt.figure()
-    plt.imshow(increase_brightness(arr))
-    plt.title("Original RGB")
-    plt.axis("off")
+    fig, ax = plt.subplots()
+    ax.imshow(increase_brightness(arr))
+    ax.axis("off")
+    ax.set_title("Original RGB")
+    add_scale_bar(ax,
+                length_px=625, height=10, color='white', linewidth=5,
+                fontsize=12, label=None, pad=10)
 
     plt.savefig(path2 + "rgb.png", 
                 dpi=300, bbox_inches="tight")
 
 
     # Mostrar canal R en escala de grises con colorbar
-    plt.figure()
-    im = plt.imshow(R, cmap="gray", vmin=15, vmax=95)
-    plt.title("Red Channel")
-    plt.axis("off")
-    plt.colorbar(im, fraction=0.046, pad=0.04, label="Intensity")
+    fig, ax = plt.subplots()
+    im = plt.imshow(R, cmap="gray", vmin=0, vmax=100)
+    ax.set_title("Red Channel")
+    ax.axis("off")
+    fig.colorbar(im, fraction=0.046, pad=0.04, label="Intensity")
+    add_scale_bar(ax,
+            length_px=625, height=10, color='white', linewidth=5,
+            fontsize=12, label=None, pad=10)
+
     plt.savefig(path2 + "red_channel.png", 
             dpi=300, bbox_inches="tight")
 
 
     # Mostrar canal G en escala de grises con colorbar
-    plt.figure()
-    im = plt.imshow(G, cmap="gray", vmin=1, vmax=80)
-    plt.title("Green Channel")
-    plt.axis("off")
-    plt.colorbar(im, fraction=0.046, pad=0.04, label="Intensity")
+    fig, ax = plt.subplots()
+    im = plt.imshow(G, cmap="gray", vmin=0, vmax=100)
+    ax.set_title("Green Channel")
+    ax.axis("off")
+    fig.colorbar(im, fraction=0.046, pad=0.04, label="Intensity")
+    add_scale_bar(ax,
+            length_px=625, height=10, color='white', linewidth=5,
+            fontsize=12, label=None, pad=10)
     plt.savefig(path2 + "gren_channel.png", 
             dpi=300, bbox_inches="tight")
 
 
     # Mostrar canal B en escala de grises con colorbar
-    plt.figure()
-    im = plt.imshow(B, cmap="gray", vmin=1, vmax=100)
-    plt.title("Blue Channel")
-    plt.axis("off")
-    plt.colorbar(im, fraction=0.046, pad=0.04, label="Intensity")
+    fig, ax = plt.subplots()
+    im = plt.imshow(B, cmap="gray", vmin=0, vmax=100)
+    ax.set_title("Blue Channel")
+    ax.axis("off")
+    fig.colorbar(im, fraction=0.046, pad=0.04, label="Intensity")
+    add_scale_bar(ax,
+            length_px=625, height=10, color='white', linewidth=5,
+            fontsize=12, label=None, pad=10)
     plt.savefig(path2 + "blue_channel.png", 
             dpi=300, bbox_inches="tight")
     
