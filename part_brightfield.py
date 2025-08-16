@@ -70,21 +70,21 @@ if part1:
         from tools import add_scale_bar
 
 
-        fig1 = plt.figure(figsize=(4, 4))
+        fig1 = plt.figure(figsize=(8, 8))
         ax1 = plt.gca()
         ax1.imshow(increase_brightness(im1, 2))
         ax1.axis('off')
         add_scale_bar(ax1, length_px=500, color='white')
         # plt.title("Normal Diet RGB")
 
-        fig5 = plt.figure(figsize=(4, 4))
+        fig5 = plt.figure(figsize=(8, 8))
         ax5 = plt.gca()
         ax5.imshow(increase_brightness(im2, 2))
         ax5.axis('off')
         add_scale_bar(ax5, length_px=500, color='white')
         # plt.title("Normal Diet Inst RGB")
 
-        fig4 = plt.figure(figsize=(4, 4))
+        fig4 = plt.figure(figsize=(8, 8))
         plt.imshow(map_mask_to_colors(imp1,[0, 2, 1, 3]))
         # plt.title("Segmentation (ND)")
         plt.axis('off')
@@ -95,7 +95,7 @@ if part1:
         fig3 = cluster_phasor_plot_4_clusters(X1, pred_y1)
         fig3.set_size_inches(tam, tam)
 
-        fig8 = plt.figure(figsize=(4, 4))
+        fig8 = plt.figure(figsize=(8, 8))
         plt.imshow(map_mask_to_colors(imp2, [2, 3, 0, 1]))
         plt.axis('off')
         ax8 = plt.gca()
@@ -411,78 +411,19 @@ if part2:
 
     # ax.set_title("Confusion Matrix", fontsize=14, fontweight='bold')
     plt.tight_layout()
-    # plt.show()
-
-
-# #####################################################################
-#                           Paper Figure
-# #####################################################################
-
-part3 = False
-if part3:
-    import matplotlib.pyplot as plt
-    from matplotlib.gridspec import GridSpec
-    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-    import numpy as np
-
-
-    def fig_to_array(fig):
-        canvas = FigureCanvas(fig)
-        canvas.draw()
-        img = np.asarray(canvas.buffer_rgba()).copy()
-        return img
-
-    def plot_custom_summary_raster(fig_list, save_path=None, dpi=300):
-        if len(fig_list) != 12:
-            raise ValueError("Se esperan exactamente 12 figuras.")
-
-        fig = plt.figure(figsize=(20, 20))
-        gs = GridSpec(4, 4, figure=fig, hspace=0.1, wspace=0.1)
-
-        # Posiciones personalizadas
-        positions = [
-            gs[0, 0], gs[0, 1], gs[0, 2], gs[0, 3],
-            gs[1, 0], gs[1, 1], gs[1, 2], gs[1, 3],
-            gs[2, 0:3], gs[2, 3],
-            gs[3, 0:3], gs[3, 3],
-        ]
-
-        letras = list("ABCDEFGHIJKL")
-
-        for i, (subfig, pos) in enumerate(zip(fig_list, positions)):
-            if subfig is None:
-                print(f"⚠️ Figura fig{i+1} es None y será salteada.")
-                continue
-
-            img = fig_to_array(subfig)
-            ax = fig.add_subplot(pos)
-            ax.imshow(img)
-            ax.set_title(letras[i], loc="left", fontsize=14, fontweight="bold")
-            ax.axis("off")
-
-        if save_path:
-            fig.savefig(save_path, dpi=dpi, bbox_inches="tight")
-            print(f"✅ Figura guardada en: {save_path}")
-            # plt.savefig("summary_phasor_paper.tiff", dpi=600, bbox_inches='tight', format='tiff')
-
-        return fig
-
-    plot_custom_summary_raster(
-        [fig1, fig2, fig3, fig4, fig5, fig6, fig7, fig8, fig9, fig10, fig11, fig12],
-        save_path="/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig2y3/summary_phasor_paper.png"
-)
     
-opt2 = True
-if opt2:
-    from tools import plot_figure_grid
-
-    figs_2x2 = [fig1, fig5, fig2, fig6, fig3, fig7, fig4, fig8]
-
-    titles_2x4 = ["Normal diet RGB", "Normal diet inst RGB",
-                  "Phasor Plot", "Phasor Plot",
-                  "Phasor Cluter", "Phasor Cluter", 
-                  "Pseudocolor Image", "Pseudocolor Image"
-                  ]
-    
-    save_path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig2y3/summary_phasor_paper.png"
-    plot_figure_grid(figs_2x2, grid_shape=(4, 2), save_path=save_path, titles=titles_2x4)
+savefig = False
+if savefig:
+    path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig2y3/"
+    fig1.savefig(path + "figure1.tiff", dpi=600, bbox_inches="tight")
+    fig2.savefig(path + "figure2.tiff", dpi=600, bbox_inches="tight")
+    fig3.savefig(path + "figure3.tiff", dpi=600, bbox_inches="tight")
+    fig4.savefig(path + "figure4.tiff", dpi=600, bbox_inches="tight")
+    fig5.savefig(path + "figure5.tiff", dpi=600, bbox_inches="tight")
+    fig6.savefig(path + "figure6.tiff", dpi=600, bbox_inches="tight")
+    fig7.savefig(path + "figure7.tiff", dpi=600, bbox_inches="tight")
+    fig8.savefig(path + "figure8.tiff", dpi=600, bbox_inches="tight")
+    fig9.savefig(path + "figure9.tiff", dpi=600, bbox_inches="tight")
+    fig10.savefig(path + "figure10.tiff", dpi=600, bbox_inches="tight")
+    fig11.savefig(path + "figure11.tiff", dpi=600, bbox_inches="tight")
+    fig12.savefig(path + "figure12.tiff", dpi=600, bbox_inches="tight")
