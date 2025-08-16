@@ -7,6 +7,8 @@ from phasorpy.plot import PhasorPlot
 from phasorpy.color import CATEGORICAL
 from phasorpy.cursors import mask_from_circular_cursor
 
+import numpy as np
+
 import tifffile
 
 
@@ -93,9 +95,6 @@ if part_hsi:
     )
 
 
-import matplotlib.pyplot as plt
-import numpy as np
-
 # Creamos una gran figura con 3 filas (cursores) y 2 columnas (nevus/melanoma)
 fig4, axs = plt.subplots(3, 2, figsize=(12, 8), sharex=True, sharey=True)
 
@@ -157,8 +156,6 @@ for i in range(3):  # Cursor loop
 
 # PCA Analysis and Ellipses plot
 
-import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 
 def plot_pca_ellipse_only(g, s, label, color, ax):
@@ -198,7 +195,7 @@ plot_pca_ellipse_only(gn_hsi, sn_hsi, "Nevus HSI", "orange", ax)
 
 ax.legend()
 
-import numpy as np
+
 import pandas as pd
 from sklearn.decomposition import PCA
 from math import pi
@@ -254,9 +251,6 @@ for (tipo, datos), phasor_data in phasors.items():
 df = pd.DataFrame(rows)
 print(df.to_markdown(index=False))
 
-import matplotlib.pyplot as plt
-import numpy as np
-
 # Datos extraídos de la tabla
 labels = ["Melanoma RGB", "Melanoma HSI", "Nevo RGB", "Nevo HSI"]
 elongation = [21.8054, 13.6123, 2.1732, 3.4451]
@@ -296,8 +290,6 @@ axes[1, 1].tick_params(axis='x', rotation=20)
 
 
 ################## Entropy ################################
-import numpy as np
-import matplotlib.pyplot as plt
 from scipy.stats import entropy
 
 def compute_phasor_entropy(g, s, bins=50):
@@ -443,7 +435,7 @@ if print_cm:
 #                   Paper FIGURE option 2                  
 ##########################################################################################
 
-fig_opt2 = True
+fig_opt2 = False
 if fig_opt2:
     from tools import plot_figure_grid
     figs_3x4 = [fig1, fig5, fig9, fig13, fig2, fig6, fig10, fig14, fig3, fig7, fig11, fig15]
