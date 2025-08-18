@@ -414,16 +414,17 @@ if part2:
     
 savefig = False
 if savefig:
+    res = 300
     path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig2y3/"
-    fig1.savefig(path + "figure1.tiff", dpi=600, bbox_inches="tight")
-    fig2.savefig(path + "figure2.tiff", dpi=600, bbox_inches="tight")
-    fig3.savefig(path + "figure3.tiff", dpi=600, bbox_inches="tight")
-    fig4.savefig(path + "figure4.tiff", dpi=600, bbox_inches="tight")
-    fig5.savefig(path + "figure5.tiff", dpi=600, bbox_inches="tight")
-    fig6.savefig(path + "figure6.tiff", dpi=600, bbox_inches="tight")
-    fig7.savefig(path + "figure7.tiff", dpi=600, bbox_inches="tight")
-    fig8.savefig(path + "figure8.tiff", dpi=600, bbox_inches="tight")
-    fig9.savefig(path + "figure9.tiff", dpi=600, bbox_inches="tight")
-    fig10.savefig(path + "figure10.tiff", dpi=600, bbox_inches="tight")
-    fig11.savefig(path + "figure11.tiff", dpi=600, bbox_inches="tight")
-    fig12.savefig(path + "figure12.tiff", dpi=600, bbox_inches="tight")
+    fig1.savefig(path + "figure1.tiff", dpi=res, bbox_inches="tight")
+    fig2.savefig(path + "figure2.tiff", dpi=res, bbox_inches="tight")
+    fig3.savefig(path + "figure3.tiff", dpi=res, bbox_inches="tight")
+    fig4.savefig(path + "figure4.tiff", dpi=res, bbox_inches="tight")
+    fig5.savefig(path + "figure5.tiff", dpi=res, bbox_inches="tight")
+    fig6.savefig(path + "figure6.tiff", dpi=res, bbox_inches="tight")
+    fig7.savefig(path + "figure7.tiff", dpi=res, bbox_inches="tight")
+    fig8.savefig(path + "figure8.tiff", dpi=res, bbox_inches="tight")
+    fig9.savefig(path + "figure9.tiff", dpi=res, bbox_inches="tight")
+    fig10.savefig(path + "figure10.tiff", dpi=res, bbox_inches="tight")
+    fig11.savefig(path + "figure11.tiff", dpi=res, bbox_inches="tight")
+    fig12.savefig(path + "figure12.tiff", dpi=res, bbox_inches="tight")
