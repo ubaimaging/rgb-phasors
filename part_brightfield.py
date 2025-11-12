@@ -307,7 +307,8 @@ if part2:
     inst_data = grouped_inst.flatten()
 
     stat, p_value = ttest_ind(nd_data, inst_data)
-    print("T-test p-value:", p_value)
+    if np.round(p_value) < 0.0001:
+        print("T-test p-value: pval < 0.0001")
     if p_value < 0.05:
         print("Significant difference between ND and Inst groups (p < 0.05)")
     else:

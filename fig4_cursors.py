@@ -28,8 +28,8 @@ from tools4 import (
 apply_plot_style()
 
 # import data from local file
-path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig5/data/"
-path2 = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig5/data/figures/sample3/"
+path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/spectral_unmixing/data/"
+path2 = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/spectral_unmixing/data/figures/sample3/"
 # --- ..................................................... ---
 # --- Part 1 Apply the phasor analysis with pure components ---
 # --- ..................................................... ---
@@ -68,7 +68,6 @@ realb_cm, imagb_cm  = phasor_center_of_mass(realb, imagb, avgb)
 realg_cm, imagg_cm  = phasor_center_of_mass(realg, imagg, avgg)
 realr_cm, imagr_cm  = phasor_center_of_mass(realr, imagr, avgr)
 
-path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig5/data/"
 image = plt.imread(path + "sample3.tif")
 threshold = [0, 100, 1, 80, 1, 95]
 rang = np.array([[0.3, 0.8], [0.05, 1], [0.2, 0.5]])
@@ -85,11 +84,11 @@ avg, real, imag = phasor_from_signal(img, axis=0)
 avg, real, imag = phasor_threshold(avg, real, imag, 
                                    mean_min=threshold_bkg)
 
-cursors_real = [0.45, -0.14, -0.2]
-cursors_imag = [0.20, 0.65, -0.3]
+cursors_real = [0.6, -0.14, -0.2]
+cursors_imag = [0.22, 0.65, -0.3]
 
-radius = [0.7, 0.1, 0.7] 
-radius_minor = [0.35, 0.45, 0.35]
+radius = [0.1, 0.1, 0.65] 
+radius_minor = [0.42, 0.44, 0.35]
 
 angles = angle=[np.pi/3, np.pi / 3, np.pi/3]
 
@@ -140,7 +139,7 @@ plt.savefig(path2 + "pseudocolor_cursors.png",
 # ##########################################################################
 part2 = True
 if part2:
-    path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig5/data/"
+    path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/spectral_unmixing/data/"
     image = plt.imread(path + "sample3.tif")
     threshold = [0, 100, 1, 80, 1, 95]
     rang = np.array([[0.3, 0.8], [0.05, 1], [0.2, 0.5]])
