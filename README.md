@@ -49,6 +49,7 @@ Fig. (A–C) Unmixed fractions for the blue, green, and red components. (D–F) 
 ---
 
 ## 📁 Repository Structure
+```bash
 
 ├── part4.py                # Main script: RGB phasor analysis + unmixing
 ├── tools.py                # Core helper functions
@@ -60,8 +61,7 @@ Fig. (A–C) Unmixed fractions for the blue, green, and red components. (D–F) 
 │       └── unmixing.png
 └── output/                 # Generated figures
 
-
----
+```
 
 ## ⚙️ How the Method Works
 
