@@ -18,7 +18,7 @@ For RGB images, the three color channels are treated as a discrete spectrum, all
 
 Example of the **simulated RGB color wheel** and its **phasor map**:
 
-![RGB-Phasor Simulations](docs/assets/simulations.png)
+![RGB-Phasor Simulations](docs/assets/FIG1.png)
 
 > *Simulated RGB color wheel → phasor transformation → cursor selection → clustering → spectral unmixing.*
 
@@ -28,14 +28,14 @@ Example of the **simulated RGB color wheel** and its **phasor map**:
 
 The framework was validated across three major microscopy modalities:
 
-### **1. Multicolor Fluorescence Microscopy**
-Phasor-based unmixing separates overlapping fluorophores (e.g., DAPI, Laminin-488, NucRed) from a *single* RGB image.
-
-### **2. Label-Free Autofluorescence Imaging**
+### **1. Label-Free Autofluorescence Imaging**
 RGB autofluorescence images (nevus vs melanoma) show measurable **spectral heterogeneity** in phasor space.
 
-### **3. Brightfield Histology (H&E)**
+### **2. Brightfield Histology (H&E)**
 RGB H&E images of lung tissue can be segmented in phasor space to quantify tissue/airspace structure.
+
+### **3. Multicolor Fluorescence Microscopy**
+Phasor-based unmixing separates overlapping fluorophores (e.g., DAPI, Laminin-488, NucRed) from a *single* RGB image.
 
 Fluorescence unmixing example:
 
@@ -84,17 +84,20 @@ Fig. (A–C) Unmixed fractions for the blue, green, and red components. (D–F) 
 
 Necessary dependencies:
 
+```bash
 numpy
 matplotlib
 scikit-image
 scikit-learn
 phasorpy
 tifffile
+```
 
 Install with:
 
 ```bash
 pip install -r requirements.txt
+```
 
 💡 Notes & Tips
 	•	Thresholds depend on illumination/staining; tune them for each dataset.
