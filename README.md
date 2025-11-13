@@ -93,7 +93,7 @@ phasorpy
 tifffile
 ```
 
-Install with:
+Install requirements with:
 
 ```bash
 pip install -r requirements.txt
