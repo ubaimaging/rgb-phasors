@@ -9,7 +9,7 @@ from phasorpy.color import CATEGORICAL
 from phasorpy.phasor import phasor_from_signal
 
 
-im = plt.imread("/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig_extra/manzanas.jpg")
+im = plt.imread("/Users/schutyb/Documents/Projects/rgb-phasors/paper/extra_figure/manzanas.jpg")
 
 plt.figure()
 plt.imshow(im)

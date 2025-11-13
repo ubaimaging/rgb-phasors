@@ -1,75 +1,115 @@
-# RGB Phasor Analysis for Microscopy Applications
+# RGB-Phasor: A Unified Phasor Framework for RGB Microscopy
 
-This repository provides tools for applying **phasor-based spectral analysis** and **spectral unmixing** to RGB images obtained from standard microscopy. Originally developed for widefield fluorescence microscopy, the methodology is here extended to three major imaging domains: **multicolor fluorescence**, **label-free autofluorescence**, and **brightfield histological staining (H&E)**.
+This repository implements the **RGB-Phasor framework**, a simple and reproducible method to map **RGB images** into **phasor space** and extract meaningful spectral information from standard microscopy images.
 
-## 🔬 Overview
+Originally conceived for the upcoming RGB-Phasor paper, this project demonstrates how **phasor analysis**—traditionally used in hyperspectral imaging and FLIM—can be applied to **standard RGB images** for segmentation, unmixing, and quantitative analysis.
 
-Phasor analysis is a model-free, geometric method commonly used in hyperspectral and FLIM microscopy. In this work, we adapt it to conventional RGB images, demonstrating that meaningful spectral features can be extracted even with reduced spectral resolution. By transforming RGB signals into the phasor (G, S) space, we enable:
+---
 
-- Visualization of spectral heterogeneity
-- Unsupervised segmentation via phasor clustering
-- Spectral unmixing and fluorophore separation
-- Quantitative feature extraction (entropy, PCA, morphometry)
+## 🔭 What Is RGB-Phasor?
 
-## 🧪 Applications
+Phasor analysis transforms pixel intensities into a geometric representation in **(G, S) Fourier space**.  
+For RGB images, the three color channels are treated as a discrete spectrum, allowing:
 
-We demonstrate the method across three biological imaging modalities:
+- **Spectral visualization**  
+- **Unsupervised segmentation** via clustering  
+- **Spectral unmixing** from a single RGB snapshot  
+- **Quantitative metrics** (entropy, dispersion, histograms)
 
-1. **Fluorescence microscopy**:  
-   RGB images of fixed cells labeled with DAPI, Laminin-488, and NucRed were unmixed into component contributions using phasor coordinates. This enabled high-resolution visualization and quantification of nuclear and cytoskeletal structures.
+Example of the **simulated RGB color wheel** and its **phasor map**:
 
-2. **Autofluorescence imaging (label-free)**:  
-   RGB images of pigmented skin lesions (nevus and melanoma) acquired under autofluorescence were analyzed in phasor space to segment regions with different metabolic or structural profiles. Parameters such as phasor entropy and principal component dispersion were used to characterize spectral heterogeneity.
+![RGB-Phasor Simulations](docs/assets/simulations.png)
 
-3. **Brightfield histology (H&E)**:  
-   RGB images of H&E-stained lung tissue were processed via phasor transformation. Clustering in phasor space allowed segmentation of tissue compartments and quantification of airspace collapse in experimental models of lung injury.
+> *Simulated RGB color wheel → phasor transformation → cursor selection → clustering → spectral unmixing.*
 
-## 📁 Folder Structure
+---
 
-```
-.
-├── part4.py                # Main script for RGB phasor analysis and unmixing
-├── paper/
-│   └── fig5/
-│       └── data/           # Component and sample images (.tif, .jpg)
-├── tools4.py              # Helper functions: RGB conversion, thresholding, phasor computation, etc.
-├── output/                # Automatically saved figures
-```
+## 🧬 Applications Demonstrated
 
-## ⚙️ How It Works
+The framework was validated across three major microscopy modalities:
 
-1. **Load RGB image(s)**  
-2. **Convert to Phasor Space (G, S)**  
-3. **Optionally define pure components or phasor cursors**  
-4. **Apply clustering or unmixing (e.g., least squares)**  
-5. **Generate output maps, histograms, pseudocolor images**
+### **1. Multicolor Fluorescence Microscopy**
+Phasor-based unmixing separates overlapping fluorophores (e.g., DAPI, Laminin-488, NucRed) from a *single* RGB image.
 
-## 📦 Dependencies
+### **2. Label-Free Autofluorescence Imaging**
+RGB autofluorescence images (nevus vs melanoma) show measurable **spectral heterogeneity** in phasor space.
 
-- Python ≥ 3.7  
-- NumPy  
-- Matplotlib  
-- Pillow  
-- Scikit-image (optional)  
-- `PhasorPy` (for phasor plotting)  
-- `mpl_toolkits.axes_grid1` (for styled colorbars)
+### **3. Brightfield Histology (H&E)**
+RGB H&E images of lung tissue can be segmented in phasor space to quantify tissue/airspace structure.
 
-## 🚀 Run the Code
+Fluorescence unmixing example:
 
-Edit `part4.py` to configure your image inputs and analysis parameters. Then run:
+![Phasor Unmixing Example](docs/assets/FIG5.png)
+
+Fig. (A) Original RGB image of the sample. (B–D) Individual blue, green, and red channels extracted from the RGB image. (E) Histograms of pixel intensity distributions for each channel shown in (B–D). (F) Phasor plot of the RGB image, illustrating the distribution of pixels and the selected cursor positions used to define spectral regions. (G) Pseudocolor representation generated by assigning pixel clusters from the phasor plot in (F) to their corresponding regions in the image. The scale bar represents 50 um. 
+
+![Phasor Unmixing Example](docs/assets/FIG6.png)
+Fig. (A–C) Unmixed fractions for the blue, green, and red components. (D–F) Intensity maps of the unmixed blue, green, and red channels. (G) Original RGB image. (H) Reconstructed unmixed RGB image with a dashed white line indicating the region selected for intensity profiling. (I) Intensity profiles of the unmixed RGB channels along the line drawn in (H), showing the spatial distribution and relative overlap of the components. The scale bar represents 50 um. 
+
+---
+
+## 📁 Repository Structure
+
+├── part4.py                # Main script: RGB phasor analysis + unmixing
+├── tools.py                # Core helper functions
+├── tools4.py               # Fluorescence-specific utilities
+├── paper/                  # Paper figures and raw data
+├── docs/                   # Website + tutorials
+│   └── assets/
+│       ├── simulations.png
+│       └── unmixing.png
+└── output/                 # Generated figures
+
+
+---
+
+## ⚙️ How the Method Works
+
+1. Load RGB images  
+2. Convert RGB → BGR (phasor convention)  
+3. Compute **phasor coordinates (G, S)** with `phasor_from_signal`  
+4. Estimate pure components or use phasor cursors  
+5. Apply:
+   - **Clustering** (k-means, GMM)
+   - **Spectral unmixing** (`phasor_component_fit`)  
+6. Visualize:
+   - Phasor histograms  
+   - Fraction maps  
+   - Pseudocolor segmentations  
+   - Photon-based unmixed RGB images  
+
+---
+
+## 📦 Requirements
+
+Necessary dependencies:
+
+numpy
+matplotlib
+scikit-image
+scikit-learn
+phasorpy
+tifffile
+
+Install with:
 
 ```bash
-python part4.py
-```
+pip install -r requirements.txt
 
-Outputs will be saved automatically in the configured folder.
+💡 Notes & Tips
+	•	Thresholds depend on illumination/staining; tune them for each dataset.
+	•	phasor_component_fit enables single-image spectral unmixing.
+	•	Extend the method with entropy, PCA, superpixels, or deep learning.
+	•	Web documentation will be published upon paper submission.
 
-## 📌 Notes
+📄 License
 
-- Intensity thresholds and phasor scaling may need tuning depending on image type and modality.
-- The code can be extended to support superpixel segmentation, entropy analysis, or graph-based learning.
-- A combined `figure_part4.jpg` is generated for use in publications.
+MIT License 
 
-## 📄 License
+🤝 Citation
 
-MIT License (or update based on your preference)
+If you use this repository, please cite:
+
+Schuty B.R., Malacrida L. et al.
+RGB-Phasor: Phasor analysis for spectral interpretation of RGB microscopy images.
+(Manuscript in preparation)

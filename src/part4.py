@@ -37,10 +37,10 @@ apply_plot_style()
 # Set to True to save figures
 savefig = False
 formatfig = 'png'  # 'pdf', 'png', 'jpg'
-path2 = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig5/data/figures/sample3/"
+path2 = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/spectral_unmixing/data/"
 
 # import data from local file
-path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/fig5/data/"
+path = "/Users/schutyb/Documents/Projects/rgb-phasors/paper/spectral_unmixing/data/"
 
 # --- ..................................................... ---
 # --- Part 1 Apply the phasor analysis with pure components ---

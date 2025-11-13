@@ -1,0 +1,53 @@
+site_name: RGB-Phasor
+site_description: "Theory, simulations, and applications of the RGB-Phasor framework"
+site_url: https://schutyb.github.io
+# repo_url: https://github.com/<your-username>/<your-repo>
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+
+markdown_extensions:
+  - admonition
+  - footnotes
+  - pymdownx.details
+  - pymdownx.tabbed
+  - pymdownx.arithmatex:
+      generic: true
+
+plugins:
+  - search
+  - glightbox
+  - mkdocs-jupyter:
+      execute: false          # build without running notebooks
+      include_source: true
+      allow_errors: false
+  - minify:
+      minify_html: true
+
+nav:
+  - Home: index.md
+  - Theory:
+      - Overview: theory/overview.md
+  - Tutorials:
+      - 1) Getting started: tutorials/01_rgb_phasor_simulations.ipynb
+      - 2) Getting started: tutorials/02_rgb_phasor_unmixing.ipynb
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/<your-username>/<your-repo>
+
+extra_javascript:
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js

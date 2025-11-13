@@ -314,7 +314,7 @@ def plot_photon_unmixing(R_frac, G_frac, B_frac, R_photons, G_photons, B_photons
     for ax, img, title in zip(
         axes[0],
         [B_frac, G_frac, R_frac],
-        ["Fractions Blue", "Fractions Green", "Fractions Red"]
+        ["Fraction Blue", "Fraction Green", "Fraction Red"]
     ):
         im = ax.imshow(img, cmap='inferno', interpolation='nearest', vmin=0, vmax=vmax_frac)
         ax.set_title(title)
