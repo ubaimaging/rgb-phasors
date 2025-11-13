@@ -51,15 +51,15 @@ Fig. (A–C) Unmixed fractions for the blue, green, and red components. (D–F) 
 ## 📁 Repository Structure
 ```bash
 
-├── part4.py                # Main script: RGB phasor analysis + unmixing
-├── tools.py                # Core helper functions
-├── tools4.py               # Fluorescence-specific utilities
-├── paper/                  # Paper figures and raw data
-├── docs/                   # Website + tutorials
-│   └── assets/
-│       ├── simulations.png
-│       └── unmixing.png
-└── output/                 # Generated figures
+├── src                       # Source code for the paper
+   └── tools.py               # Core helper functions
+   └── tools4.py              # Fluorescence-specific utilities
+   └── simulations.py         # Simulations for the RGB Phasor method 
+   └── part_brightfield.py    # Brigh fields analysis with Phasors 
+   └── autofluorescence.py    # Autofluorescence analysis with phasors
+   └── part4.py               # RGB Phasor unmixing with fluorescence 
+├── docs/                     # Website + tutorials
+│   └──tutorials              # Tutorials for simulations and RGB Phasor Unmixing 
 
 ```
 
