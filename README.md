@@ -116,3 +116,6 @@ If you use this repository, please cite:
 Schuty B.R., Malacrida L. et al.
 RGB-Phasor: Phasor analysis for spectral interpretation of RGB microscopy images.
 (Manuscript in preparation)
+
+Zenodo v1.0.0
+Schuty, B., & Malacrida, L. (2026). RGB Phasors: Computational Framework for RGB-Based Phasor Analysis in Biomedical Imaging. Zenodo. https://doi.org/10.5281/zenodo.18635340
