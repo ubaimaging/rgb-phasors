@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+
+# VSCode
+.vscode/
+
+# MkDocs build
+site/
+
+# Data (si no querés versionar datasets)
+data/
