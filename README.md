@@ -112,22 +112,13 @@ MIT License
 ## 📄 Citation
 
 If you use this work, please cite:
+
 Schuty, B., García, M. J., Khuon, S., & Malacrida, L. (2026).  
 *Phasor analysis of RGB camera data enables fluorescence microscopy unmixing and brightfield segmentation in a commercial microscope.*  
 Sensing and Bio-Sensing Research, 101014.  
 https://doi.org/10.1016/j.sbsr.2026.101014
 
-### BibTeX
-% Citation for the RGB Phasor paper
-@article{schuty2026rgbphasor,
-  title={Phasor analysis of RGB camera data enables fluorescence microscopy unmixing and brightfield segmentation in a commercial microscope},
-  author={Schuty, Bruno and García, María José and Khuon, Satya and Malacrida, Leonel},
-  journal={Sensing and Bio-Sensing Research},
-  year={2026},
-  pages={101014},
-  issn={2214-1804},
-  doi={10.1016/j.sbsr.2026.101014}
-}
 
-Zenodo v1.0.0
+
+### Zenodo v1.0.0
 Schuty, B., & Malacrida, L. (2026). RGB Phasors: Computational Framework for RGB-Based Phasor Analysis in Biomedical Imaging. Zenodo. https://doi.org/10.5281/zenodo.18635340
