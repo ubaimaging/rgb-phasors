@@ -1,7 +1,5 @@
 # Phasor analysis of RGB camera data enables fluorescence microscopy unmixing and brightfield segmentation in a commercial microscope.
 
-### Sensing and Bio-Sensing Research, 101014.
-
 This repository implements the **RGB-Phasor framework**, a simple and reproducible method to map **RGB images** into **phasor space** and extract meaningful spectral information from standard microscopy images.
 
 Originally conceived for the upcoming RGB-Phasor paper, this project demonstrates how **phasor analysis**—traditionally used in hyperspectral imaging and FLIM—can be applied to **standard RGB images** for segmentation, unmixing, and quantitative analysis.
